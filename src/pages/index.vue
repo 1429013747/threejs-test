@@ -23,7 +23,9 @@ export default {
       cameraFolder: null, // 相机gui
       loader: null, // 加载器
       gui: null, // gui
-      list: {},
+      deviceList: {},
+      roomId: "FEA02F8D097046CCB28959372D680B7C",
+      cachesModels: new WeakSet(),
     };
   },
   activated() {},
@@ -35,25 +37,27 @@ export default {
     element.addEventListener("click", this.onmodelclick);
     this.clock = new THREE.Clock(); // 创建时钟
     this.init(); // 初始化
-    this.getJgData();
   },
   methods: {
     //获取设备数据（接口）
-    getJgData() {
-      // 发送 GET 请求
-      axios
-        .get(
-          "/risen-dyw-api/public/cockpit/assets/cabinetAssetsList?roomUuid=FB1F440EC3474A27AC730B70648C91A1&cabinetUuid=528582C1283B4FC7B010E6C2AEAC0D38"
-        )
-        .then((response) => {
-          const { data } = response;
-          if (data.success) {
-            this.list = data.data;
-          }
+    getJgData(roomId, jgId) {
+      return new Promise((resolve, reject) => {
+        // 发送 GET 请求
+        axios({
+          url: `/risen-dyw-api/public/cockpit/assets/cabinetAssetsList?roomUuid=${roomId}&cabinetUuid=${jgId}`,
+          method: "post", //get
         })
-        .catch((error) => {
-          console.error("请求出错：", error);
-        });
+          .then(async (response) => {
+            const { data } = response;
+            if (data.success) {
+              // this.deviceList = await data.data;
+              resolve(data.data);
+            }
+          })
+          .catch((error) => {
+            console.error("请求出错：", error);
+          });
+      });
     },
     // 初始化
     init() {
@@ -193,10 +197,10 @@ export default {
       //   "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
       // );
       // 创建 GLTF 加载器
-      const loader = new GLTFLoader();
+      this.loader = new GLTFLoader();
       //加载模型
-      loader.load(
-        "/source/中心机房-空机柜.gltf",
+      this.loader.load(
+        "/source/中心机房-空机柜(5).gltf",
         (gltf) => {
           console.log("🚀 ~ loader.load ~ gltf:", gltf);
           gltf.scene.traverse(function (child) {
@@ -244,7 +248,7 @@ export default {
       );
     },
     // 点击模型
-    onmodelclick(e) {
+    async onmodelclick(e) {
       e.preventDefault();
       const element = document.getElementById("container");
       const rect = element.getBoundingClientRect();
@@ -259,12 +263,20 @@ export default {
       raycaster.setFromCamera(mouse, this.camera);
       // 计算物体和射线的焦点
       const intersects = raycaster.intersectObjects(this.scene.children);
+      console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
       if (intersects.length > 0) {
-        const temp = intersects.filter((el) => el.object instanceof THREE.Mesh);
+        const temp = intersects.filter(
+          (el) => el.object.name.split("-")[0] === "door"
+        );
         console.log("🚀 ~ onmodelclick ~ temp:", temp);
-        // const object = temp.find((el) => el.object.name === "door1-glass1_63");
         const object = temp[0];
-        if (object && this.list.length > 0) {
+        if (temp.length <= 0) return;
+        if (this.cachesModels.has(object.object)) return;
+        this.cachesModels.add(object.object);
+        const id = object.object.name.split("-")[1];
+        // 获取机柜实时数据
+        this.deviceList = await this.getJgData(this.roomId, id);
+        if (object && this.deviceList.length > 0) {
           // 计算模型的外边框
           const box = new THREE.Box3().setFromObject(object.object);
           // 通过外边框计算模型的中心点
@@ -279,16 +291,16 @@ export default {
           const offsetX = positionToWorldCenter.x; // X轴偏移
           const offsetZ = positionToWorldCenter.z - 200; // Z轴偏移
           // 加载模型
-          this.list.forEach((el) => {
+          this.deviceList.forEach((el) => {
             const match = el.gasCabinteAddress.match(/^\d+/);
             const offsetY = Number(match[0]);
             if (match) {
               // 判断设备是几u
               const deviceNum = this.computedU(match.input);
-              console.log(deviceNum, "str");
               // 加载模型
               this.loadModel(
-                `/source/FWQ${deviceNum}.gltf`,
+                // `/source/FWQ${deviceNum}.gltf`,
+                `/source/${el.gasStockType + deviceNum}.gltf`,
                 true,
                 height,
                 offsetX,
@@ -336,6 +348,8 @@ export default {
           cityGroup.position.x = offsetX;
           cityGroup.position.z = offsetZ;
           cityGroup.position.y += offsetY * (height / 42);
+          cityGroup.rotateY(Math.PI);
+          // this.adjustModelAngle(cityGroup, offsetX);
           // 把分组后的模型添加到场景中
           this.scene.add(cityGroup);
           // 把模型添加到场景中
@@ -353,10 +367,14 @@ export default {
         }
       );
     },
+    //调整模型角度
+    adjustModelAngle(model, position) {
+      console.log("🚀 ~ adjustModelAngle ~ position:", position);
+    },
     //让模型自适应窗口
     onWindowResize() {
       const element = document.getElementById("container");
-      const width = element.clientWidth; // 窗口宽度 
+      const width = element.clientWidth; // 窗口宽度
       const height = element.clientHeight; // 窗口高度
       this.camera.aspect = width / height; // 设置相机宽高比
       this.camera.updateProjectionMatrix(); // 更新相机投影矩阵
@@ -371,7 +389,7 @@ export default {
       } else {
         const match = temp[1].match(/^\d+/);
         const t = Number(match[0]) - Number(temp[0]) + 1 + "U";
-        return t;
+        return t === "3U" ? "2U" : t;
       }
     },
   },
