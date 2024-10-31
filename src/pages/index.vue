@@ -1,10 +1,24 @@
 <template>
-  <div id="container"></div>
+  <div class="container">
+    <div class="map-house-box">
+      <div class="mapHouseContainer" ref="threeBox"></div>
+    </div>
+    <div class="info2" ref="infoRef">
+      <p>信息:xxxxxxxxxxxxxxx</p>
+      <p>信息:xxxxxxxxxxxxxxx</p>
+      <p>信息:xxxxxxxxxxxxxxx</p>
+      <p>信息:xxxxxxxxxxxxxxx</p>
+      <p>信息:xxxxxxxxxxxxxxx</p>
+      <p>信息:xxxxxxxxxxxxxxx</p>
+      <p>信息:xxxxxxxxxxxxxxx</p>
+    </div>
+  </div>
 </template>
 <script>
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import Tween from "@tweenjs/tween.js";
 // import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 // 导入gui
 import dat from "dat.gui"; // 引入 Axios
@@ -33,7 +47,7 @@ export default {
   wacth: {},
   created() {},
   mounted() {
-    const element = document.getElementById("container");
+    const element = this.$refs.threeBox;
     element.addEventListener("click", this.onmodelclick);
     this.clock = new THREE.Clock(); // 创建时钟
     this.init(); // 初始化
@@ -43,6 +57,11 @@ export default {
     getJgData(roomId, jgId) {
       return new Promise((resolve, reject) => {
         // 发送 GET 请求
+        // this.cabinetAssetsList({ roomUuid: roomId, cabinetUuid: jgId }).then((res) => {
+        //   if (res.success) {
+        //     resolve(res.data);
+        //   }
+        // });
         axios({
           url: `/risen-dyw-api/public/cockpit/assets/cabinetAssetsList?roomUuid=${roomId}&cabinetUuid=${jgId}`,
           method: "post", //get
@@ -64,7 +83,7 @@ export default {
       this.createScene(); // 创建场景
       this.createCamera(); // 创建相机
       this.createLight(); // 创建光源
-      this.loadGLTF(); // 加载 GLTF 模型
+      this.loadGLTF("/source/大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
       // this.createBox(); // 加载 GLTF 模型
       // this.gui(); // 创建GUI
       this.createRender(); // 创建渲染器
@@ -109,7 +128,7 @@ export default {
     },
     // 创建相机
     createCamera() {
-      const element = document.getElementById("container");
+      const element = this.$refs.threeBox;
       const width = element.clientWidth; // 窗口宽度
       const height = element.clientHeight; // 窗口高度
       const k = width / height; // 窗口宽高比
@@ -131,11 +150,12 @@ export default {
       // 把标尺添加到场景中
       this.scene.add(axesHelper);
       // 创建渲染器
-      const element = document.getElementById("container");
+      const element = this.$refs.threeBox;
       // 创建渲染器
       this.renderer = new THREE.WebGLRenderer({
         antialias: true, // 抗锯齿
         alpha: false, // 透明背景
+        side: THREE.DoubleSide,
       });
       this.renderer.setSize(element.clientWidth, element.clientHeight); // 设置渲染器大小
       this.renderer.shadowMap.enabled = true; // 启用阴影
@@ -188,8 +208,8 @@ export default {
       // 将网格添加到场景中
       this.scene.add(cube);
     },
-    // 加载 GLTF 模型
-    loadGLTF() {
+    // 加载建筑模型
+    loadGLTF(url, position, scale) {
       //  //创建解码器
       // const dracoLoader = new DRACOLoader();
       // // 设置 Draco 解码器的路径
@@ -197,16 +217,20 @@ export default {
       //   "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
       // );
       // 创建 GLTF 加载器
-      this.loader = new GLTFLoader();
+      const loader = new GLTFLoader();
       //加载模型
-      this.loader.load(
-        "/source/中心机房-空机柜(5).gltf",
+      loader.load(
+        url,
         (gltf) => {
           console.log("🚀 ~ loader.load ~ gltf:", gltf);
+          this.gltfDl = gltf;
           gltf.scene.traverse(function (child) {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
               child.castShadow = true; // 投影
+              // child.receiveShadow = false; // 接收投影
+              // child.material.side = THREE.DoubleSide; // 双面渲染
+              // child.material.flatShading = true; // 平滑着色
               child.material.emissive = child.material.color; // 物体自发光
               child.material.emissiveMap = child.material.map; // 物体自发光贴图
             }
@@ -215,7 +239,9 @@ export default {
           const cityGroup = new THREE.Group();
           // 创建一个组 （这样可以移动模型，其他办法暂时没有想到）
           cityGroup.add(...gltf.scene.children);
-          cityGroup.position.y = 345; // 设置y轴位置
+          cityGroup.position.y = position[1]; // 设置y轴位置
+          cityGroup.position.z = position[2]; // 设置y轴位置
+          cityGroup.scale.set(...scale); // 设置缩放
           this.scene.add(cityGroup); // 把组添加到场景中
           // 计算组模型的外边框
           const box = new THREE.Box3().setFromObject(cityGroup);
@@ -249,8 +275,10 @@ export default {
     },
     // 点击模型
     async onmodelclick(e) {
+      // 阻止默认行为
       e.preventDefault();
-      const element = document.getElementById("container");
+      // 获取鼠标在屏幕上的位置
+      const element = this.$refs.threeBox;
       const rect = element.getBoundingClientRect();
       // 计算鼠标在屏幕上的位置（注意是加载整个场景的dom元素）
       const mouse = new THREE.Vector2(
@@ -265,13 +293,34 @@ export default {
       const intersects = raycaster.intersectObjects(this.scene.children);
       console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
       if (intersects.length > 0) {
-        const temp = intersects.filter(
-          (el) => el.object.name.split("-")[0] === "door"
-        );
-        console.log("🚀 ~ onmodelclick ~ temp:", temp);
-        const object = temp[0];
-        if (temp.length <= 0) return;
-        if (this.cachesModels.has(object.object)) return;
+        // 计算模型的外边框
+        // const box = new THREE.Box3().setFromObject(intersects[0].object);
+        // // 创建一个边框，把模型放进去（就是box）
+        // const helper = new THREE.Box3Helper(box, 0xffff00);
+        // // 把计算后有模型的边框添加到场景中
+        // this.scene.add(helper);
+        // //一秒后删除
+        // setTimeout(() => {
+        //   this.scene.remove(helper);
+        // }, 1000);
+        // const
+        // 过滤出设备模型 light
+        const lightList = this.filterModel(intersects, "light");
+        if (lightList.length > 0) {
+          this.visibleSpecificScene(this.scene);
+          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
+        }
+        // 过滤出设备模型 device
+        const deviceList = this.filterModel(intersects, "device");
+        //创建弹框并设置位置
+        deviceList.length > 0 && this.createAdvertisement(e);
+        // 过滤出设备模型 door
+        const doorList = this.filterModel(intersects, "door");
+        console.log("🚀 ~ onmodelclick ~ doorList:", doorList);
+        const object = doorList[0];
+        // 缓存中有则不再允许点击
+        if (doorList.length <= 0 || this.cachesModels.has(object.object))
+          return;
         this.cachesModels.add(object.object);
         const id = object.object.name.split("-")[1];
         // 获取机柜实时数据
@@ -300,7 +349,7 @@ export default {
               // 加载模型
               this.loadModel(
                 // `/source/FWQ${deviceNum}.gltf`,
-                `/source/${el.gasStockType + deviceNum}.gltf`,
+                `/source/device-${el.gasStockType + deviceNum}.gltf`,
                 true,
                 height,
                 offsetX,
@@ -311,28 +360,15 @@ export default {
             }
           });
         }
-        // 给点击到的模型添加一个边框
-        if (intersects.length > 0) {
-          // 计算模型的外边框
-          const box = new THREE.Box3().setFromObject(intersects[0].object);
-          // 创建一个边框，把模型放进去（就是box）
-          const helper = new THREE.Box3Helper(box, 0xffff00);
-          // 把计算后有模型的边框添加到场景中
-          this.scene.add(helper);
-          //一秒后删除
-          setTimeout(() => {
-            this.scene.remove(helper);
-          }, 1000);
-        }
       }
     },
-    // 加载模型
+    // 加载设备模型
     loadModel(url, isPlay, height, offsetX, offsetY, offsetZ, model) {
       const loader = new GLTFLoader();
       loader.load(
         url,
         (gltf) => {
-          // console.log("🚀 ~ loader.load ~ gltf:", gltf);
+          console.log("🚀 ~ loader.load ~ gltf:", gltf);
           gltf.scene.traverse(function (child) {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
@@ -349,7 +385,6 @@ export default {
           cityGroup.position.z = offsetZ;
           cityGroup.position.y += offsetY * (height / 42);
           cityGroup.rotateY(Math.PI);
-          // this.adjustModelAngle(cityGroup, offsetX);
           // 把分组后的模型添加到场景中
           this.scene.add(cityGroup);
           // 把模型添加到场景中
@@ -371,15 +406,68 @@ export default {
     adjustModelAngle(model, position) {
       console.log("🚀 ~ adjustModelAngle ~ position:", position);
     },
+    //销毁所有模型
+    destroyScene(scene) {
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          if (object.material && object.material.map) {
+            object.material.map.dispose();
+          }
+          object.material.dispose();
+        }
+      });
+      scene.children = [];
+    },
+    //隐藏模型
+    visibleSpecificScene(scene) {
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.visible = false;
+        }
+      });
+    },
+    //创建弹框并设置位置
+    createAdvertisement(e) {
+      let offsetX = e.offsetX;
+      let offsetY = e.offsetY;
+      const infoDomHeight = this.$refs.infoRef.clientHeight;
+      if (offsetY <= infoDomHeight / 1.5) {
+        offsetY = offsetY + infoDomHeight / 1.5;
+      }
+      if (offsetX <= infoDomHeight) {
+        offsetX = offsetX + infoDomHeight;
+      }
+      this.$refs.infoRef.style = `transform: translate(${offsetX + 20}px, ${
+        offsetY - 150
+      }px);opacity:1;`;
+      window.addEventListener("mousemove", (e) => {
+        if (this.$refs.infoRef) this.$refs.infoRef.style = "opacity:0";
+      });
+    },
     //让模型自适应窗口
     onWindowResize() {
-      const element = document.getElementById("container");
-      const width = element.clientWidth; // 窗口宽度
-      const height = element.clientHeight; // 窗口高度
-      this.camera.aspect = width / height; // 设置相机宽高比
-      this.camera.updateProjectionMatrix(); // 更新相机投影矩阵
-      this.renderer.setSize(width, height); // 设置渲染器大小
+      const element = this.$refs.threeBox;
+      if (element) {
+        const width = element.clientWidth; // 窗口宽度
+        const height = element.clientHeight; // 窗口高度
+        this.camera.aspect = width / height; // 设置相机宽高比
+        this.camera.updateProjectionMatrix(); // 更新相机投影矩阵
+        this.renderer.setSize(width, height); // 设置渲染器大小
+      }
       window.addEventListener("resize", this.onWindowResize, false);
+    },
+    //过滤模型
+    filterModel(intersects, name) {
+      if (name === "door") {
+        return intersects.filter((el) => el.object.name.split("-")[0] === name);
+      }
+      if (name === "device") {
+        return intersects.filter((el) => el.object.name.split("-")[0] === name);
+      }
+      if (name === "light") {
+        return intersects.filter((el) => el.object.name.split("-")[0] === name);
+      }
     },
     // 计算设备是几U
     computedU(str) {
@@ -396,10 +484,45 @@ export default {
 };
 </script>
 <style scoped>
-#container {
-  text-align: center;
-  font-size: 20px;
-  width: 100%;
-  height: 600px;
+.container {
+  position: relative;
+  .map-house-box {
+    /* width: 18rem;
+    height: 11rem;
+    left: 50%; */
+    width: 100%;
+    height: 700px;
+    position: absolute;
+    top: -1.38rem;
+    right: 0;
+    margin-left: -9rem;
+    padding: 1.35rem 0.25rem 2.2rem;
+    .mapHouseContainer {
+      width: 100%;
+      height: 100%;
+      background: #2d4057 !important;
+      border-radius: 2.5rem 2.5rem 2rem 2rem !important;
+      box-shadow: 1px 2px 20px 10px #0c1f2d;
+      overflow: hidden;
+    }
+  }
+  .info2 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 220px;
+    background-color: rgba(255, 255, 255, 0.5);
+    overflow: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 999;
+    opacity: 0;
+    font-size: 19px;
+    color: #000;
+    border: 1px solid #000;
+    border-radius: 5px;
+    margin: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  }
 }
 </style>
