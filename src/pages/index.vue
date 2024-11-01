@@ -13,6 +13,8 @@
       <p>设备状态:正常</p>
       <p>告警数量:0</p>
     </div>
+
+    <!-- <DialogListJfjcRecord :popType="JfjcRecordInfo" /> -->
   </div>
 </template>
 <script>
@@ -25,7 +27,13 @@ import * as TWEEN from "@tweenjs/tween.js";
 import dat from "dat.gui"; // 引入 Axios
 import axios from "axios";
 
+// import DialogListJfjcRecord from "@/components/DialogList-JfjcRecord";
+
 export default {
+  // components: { DialogListJfjcRecord },
+  // props: {
+  //   popType: { type: Object },
+  // },
   data() {
     return {
       scene: null, // 场景
@@ -38,9 +46,581 @@ export default {
       cameraFolder: null, // 相机gui
       loader: null, // 加载器
       gui: null, // gui
-      deviceList: {},
+      deviceList: [],
+      ddd: [
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "柏科",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "1u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:27",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "10.71.80.202",
+          gasFixedAssetsNum: "CC-0028",
+          gasGatName: "柏科存储",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "RD6810F",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 1215,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "A77F3EB38033444FAF725C509480327C",
+          gasRelGroupUuid: "15F526E8AE324F61939FF3E5D6183010",
+          gasRelModelUuid: "518A95D420BC480D9DDA02EB7012B578",
+          gasRemark: "",
+          gasSerialNum: "Rd5621730",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "存储设备",
+          gasTypeuuid: "DDBDE479A3DE4A18A28878780CE602BE",
+          gasUnid: 177085821,
+          gasUpdateTime: "2024-05-09 09:51:27",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "52030B1111C54DF7927A36D26E9CCD69",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:27",
+          order: 1215,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177085821,
+          uuid: "52030B1111C54DF7927A36D26E9CCD69",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "华为",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "10-12u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:59",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "59.202.69.79",
+          gasFixedAssetsNum: "FWQ-0133",
+          gasGatName: "信创服务器（数据3）",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "K22K-02",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 3091,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "918BAD954BC14A38A1B03BCDDBD12761",
+          gasRelGroupUuid: "75E433CAE5A94EE888E769ACB4786834",
+          gasRelModelUuid: "4957EB01F5994B7A833C29655DC86534",
+          gasRemark: "",
+          gasSerialNum: "2102313AQP10M1000398",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "物理机",
+          gasTypeuuid: "D017A94B87F04E26B6C25B1D2ED09F6D",
+          gasUnid: 177086850,
+          gasUpdateTime: "2024-05-09 09:51:59",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "16982C73F2F24053BBD840DAD52BF7DA",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:59",
+          order: 3091,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177086850,
+          uuid: "16982C73F2F24053BBD840DAD52BF7DA",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "华为",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "14-15u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:59",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "59.202.69.90",
+          gasFixedAssetsNum: "FWQ-0132",
+          gasGatName: "信创服务器（应用8）",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "K22K-02",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 3089,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "918BAD954BC14A38A1B03BCDDBD12761",
+          gasRelGroupUuid: "75E433CAE5A94EE888E769ACB4786834",
+          gasRelModelUuid: "4957EB01F5994B7A833C29655DC86534",
+          gasRemark: "",
+          gasSerialNum: "2102313AQP10M1000405",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "物理机",
+          gasTypeuuid: "D017A94B87F04E26B6C25B1D2ED09F6D",
+          gasUnid: 177086849,
+          gasUpdateTime: "2024-05-09 09:51:59",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "A4FC38D217F84A759BFF7B5529E2BDCF",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:59",
+          order: 3089,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177086849,
+          uuid: "A4FC38D217F84A759BFF7B5529E2BDCF",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "华为",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "18-19u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:59",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "59.202.69.107",
+          gasFixedAssetsNum: "FWQ-0131",
+          gasGatName: "信创服务器（应用4）",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "K22K-02",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 3087,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "918BAD954BC14A38A1B03BCDDBD12761",
+          gasRelGroupUuid: "75E433CAE5A94EE888E769ACB4786834",
+          gasRelModelUuid: "4957EB01F5994B7A833C29655DC86534",
+          gasRemark: "",
+          gasSerialNum: "2102313AQP10M1000396",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "物理机",
+          gasTypeuuid: "D017A94B87F04E26B6C25B1D2ED09F6D",
+          gasUnid: 177086848,
+          gasUpdateTime: "2024-05-09 09:51:59",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "886D70A9C6284A3C9F86BED1A990BC4C",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:59",
+          order: 3087,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177086848,
+          uuid: "886D70A9C6284A3C9F86BED1A990BC4C",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "信创国产服务器",
+          gasBrandType: "华为",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "20U",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:59",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18238084282",
+          gasCustodianUser: "朱永坤",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "59.202.69.100",
+          gasFixedAssetsNum: "FWQ-0320",
+          gasGatName: "集约化管理中心服务器",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "华为K22K-02",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 2771,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "",
+          gasRelFormUuid: "918BAD954BC14A38A1B03BCDDBD12761",
+          gasRelGroupUuid: "75E433CAE5A94EE888E769ACB4786834",
+          gasRelModelUuid: "4957EB01F5994B7A833C29655DC86534",
+          gasRemark: "",
+          gasSerialNum: "2102313AQP10M1000404",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "物理机",
+          gasTypeuuid: "D017A94B87F04E26B6C25B1D2ED09F6D",
+          gasUnid: 177086690,
+          gasUpdateTime: "2024-05-09 09:51:59",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "89249DC303CC4ECE9E106E62BC50353F",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:59",
+          order: 2771,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177086690,
+          uuid: "89249DC303CC4ECE9E106E62BC50353F",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "戴尔",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "21-22u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:59",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "10.71.80.217",
+          gasFixedAssetsNum: "FWQ-0130",
+          gasGatName: "VMware虚拟化主机",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "R720",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 3085,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "918BAD954BC14A38A1B03BCDDBD12761",
+          gasRelGroupUuid: "75E433CAE5A94EE888E769ACB4786834",
+          gasRelModelUuid: "4957EB01F5994B7A833C29655DC86534",
+          gasRemark: "",
+          gasSerialNum: "BD7G742",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "物理机",
+          gasTypeuuid: "D017A94B87F04E26B6C25B1D2ED09F6D",
+          gasUnid: 177086847,
+          gasUpdateTime: "2024-05-09 09:51:59",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "49B11899712C415BA6B2BE66F4D33E45",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:59",
+          order: 3085,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177086847,
+          uuid: "49B11899712C415BA6B2BE66F4D33E45",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "柏科",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "28-29u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:27",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "10.71.80.198",
+          gasFixedAssetsNum: "CC-0027",
+          gasGatName: "柏科存储虚拟化网关",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "VRD7100",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 1213,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "A77F3EB38033444FAF725C509480327C",
+          gasRelGroupUuid: "15F526E8AE324F61939FF3E5D6183010",
+          gasRelModelUuid: "518A95D420BC480D9DDA02EB7012B578",
+          gasRemark: "",
+          gasSerialNum: "Rd5621744",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "CC",
+          gasStorage: "",
+          gasTypename: "存储设备",
+          gasTypeuuid: "DDBDE479A3DE4A18A28878780CE602BE",
+          gasUnid: 177085820,
+          gasUpdateTime: "2024-05-09 09:51:27",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "FB211399C6D54A5CADC18F2CEDA8F3E4",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:27",
+          order: 1213,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177085820,
+          uuid: "FB211399C6D54A5CADC18F2CEDA8F3E4",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "华为",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "35-36u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:59",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "59..202.69.100",
+          gasFixedAssetsNum: "FWQ-0127",
+          gasGatName: "信创服务器",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "K22K-02",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 3079,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "918BAD954BC14A38A1B03BCDDBD12761",
+          gasRelGroupUuid: "75E433CAE5A94EE888E769ACB4786834",
+          gasRelModelUuid: "4957EB01F5994B7A833C29655DC86534",
+          gasRemark: "未配置IP，未在使用；已关停，未下架",
+          gasSerialNum: "2102313AQP10M1000404",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "物理机",
+          gasTypeuuid: "D017A94B87F04E26B6C25B1D2ED09F6D",
+          gasUnid: 177086844,
+          gasUpdateTime: "2024-05-09 09:51:59",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "6483CA6170E14A3C914FE2D07B389A10",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:59",
+          order: 3079,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177086844,
+          uuid: "6483CA6170E14A3C914FE2D07B389A10",
+        },
+        {
+          ext: {},
+          gasAffiliatedDept: "拱墅区数据局",
+          gasAssociatedName: "",
+          gasBrandType: "科来",
+          gasBrandTypeuuid: "",
+          gasCabinetOffice: "机柜B7",
+          gasCabinteAddress: "42u",
+          gasCmmFormUuid: "BB578E51F4204AB9A4E360C71E5F6F25",
+          gasCmmGroupUuid: "25EB32A8706A41EABF75B3F2CDF9D735",
+          gasComputerRoom: "拱墅区政府中心机房",
+          gasCpu: "",
+          gasCreateTime: "2024-05-09 09:51:59",
+          gasCreator: "CRACT_UUID_1",
+          gasCreatorName: "系统管理员",
+          gasCustodianContact: "18042302114",
+          gasCustodianUser: "刘贤财",
+          gasDisk: "",
+          gasEquipmentAddress: "",
+          gasEquipmentIp: "10.71.80.91",
+          gasFixedAssetsNum: "FWQ-0126",
+          gasGatName: "科来网络回溯分析系统",
+          gasJfuuid: "FEA02F8D097046CCB28959372D680B7C",
+          gasJguuid: "5EE8A494BB624CC699257D18F7CF84F3",
+          gasMaintenanceContact: "",
+          gasMaintenanceContactnumber: "",
+          gasMaintenanceStatus: "",
+          gasMaintenanceUnit: "",
+          gasModelNumberUuid: "RAS3006STX",
+          gasModelid: "76D6F33419384ED29AABE7E40AA2668B",
+          gasOrder: 3077,
+          gasPurchaseManufactor: "",
+          gasPurchaseMoney: "",
+          gasPurchaseUnit: "区数据局",
+          gasRelFormUuid: "918BAD954BC14A38A1B03BCDDBD12761",
+          gasRelGroupUuid: "75E433CAE5A94EE888E769ACB4786834",
+          gasRelModelUuid: "4957EB01F5994B7A833C29655DC86534",
+          gasRemark: "",
+          gasSerialNum: "PHRAS3006STX20160505005",
+          gasStatus: "1",
+          gasStockStatus: "1",
+          gasStockType: "FWQ",
+          gasStorage: "",
+          gasTypename: "物理机",
+          gasTypeuuid: "D017A94B87F04E26B6C25B1D2ED09F6D",
+          gasUnid: 177086843,
+          gasUpdateTime: "2024-05-09 09:51:59",
+          gasUpdater: "CRACT_UUID_1",
+          gasUpkeepMoney: "",
+          gasUse: "",
+          gasUuid: "9E42533DFB0B44F0AEE3F2D63B35F446",
+          intMap: {},
+          lastUpdateTime: "2024-05-09 09:51:59",
+          order: 3077,
+          status: "1",
+          strList: [],
+          strMap: {
+            cabinetName: "B7",
+          },
+          unid: 177086843,
+          uuid: "9E42533DFB0B44F0AEE3F2D63B35F446",
+        },
+      ],
       roomId: "FEA02F8D097046CCB28959372D680B7C",
       cachesModels: new WeakSet(),
+      JfjcRecordInfo: {
+        uuid: "",
+        isShow: false,
+        isShowEmpty: false,
+        JfjcRecordList: [],
+        pagination: {
+          pageSizes: [10, 15, 20, 25],
+          currentPage: 1, // 当前页默认第一页
+          pageSize: 10, // 每页数据
+          total: 0,
+        },
+      },
     };
   },
   activated() {},
@@ -54,11 +634,37 @@ export default {
     this.init(); // 初始化
   },
   methods: {
+    //机房进出记录
+    openJfRecordList() {
+      this.JfjcRecordInfo.isShowEmpty = false;
+      this.JfjcRecordInfo.JfjcRecordList = [];
+      this.JfjcRecordInfo.pagination.currentPage = 1;
+      this.JfjcRecordInfo.pagination.pageSize = 10;
+      this.JfjcRecordInfo.uuid = this.popType.jfUuid;
+      this.$api
+        .getComputerRoomStatistics({
+          start: 0,
+          page: 1,
+          limit: 10,
+          entityuuid: this.popType.jfUuid,
+        })
+        .then((res) => {
+          this.JfjcRecordInfo.JfjcRecordList = res.data;
+          if (res.data && res.data.length > 0) {
+            this.JfjcRecordInfo.isShowEmpty = false;
+            this.JfjcRecordInfo.pagination.total = res.totalCount;
+            this.JfjcRecordInfo.isShow = true;
+          } else {
+            this.JfjcRecordInfo.isShowEmpty = true;
+            this.JfjcRecordInfo.pagination.total = 0;
+          }
+        });
+    },
     //获取设备数据（接口）
     getJgData(roomId, jgId) {
       return new Promise((resolve, reject) => {
         // 发送 GET 请求
-        // this.cabinetAssetsList({ roomUuid: roomId, cabinetUuid: jgId }).then((res) => {
+        // this.$api.cabinetAssetsList({ roomUuid: roomId, cabinetUuid: jgId }).then((res) => {
         //   if (res.success) {
         //     resolve(res.data);
         //   }
@@ -77,6 +683,16 @@ export default {
           .catch((error) => {
             console.error("请求出错：", error);
           });
+      });
+    },
+    //获取详情
+    deviceInfo(params) {
+      return new Promise((resolve, reject) => {
+        this.$api.getAssetsDetail({ assetsNumber: params }).then((res) => {
+          if (res.success) {
+            resolve(res.data);
+          }
+        });
       });
     },
     // 初始化
@@ -177,9 +793,6 @@ export default {
       this.controls.update();
       // 递归调用渲染函数
       requestAnimationFrame(this.render);
-      // 更新 TWEEN
-      this.tweenRemove && this.tweenRemove.update();
-      this.tweenEnter && this.tweenEnter.update();
     },
     // 创建控件对象
     createControls() {
@@ -245,9 +858,7 @@ export default {
           this.buildingGroup.position.y = position[1]; // 设置y轴位置
           this.buildingGroup.position.z = position[2]; // 设置y轴位置
           this.buildingGroup.scale.set(...scale); // 设置缩放
-          this.buildingGroup.visible = false;
           this.scene.add(this.buildingGroup); // 把组添加到场景中
-          this.animateModelEnter(this.buildingGroup, scale);
           // 计算组模型的外边框
           const box = new THREE.Box3().setFromObject(this.buildingGroup);
           // 创建一个边框，把模型放进去（就是box）
@@ -311,13 +922,21 @@ export default {
         // 过滤出设备模型 light
         const lightList = this.filterModel(intersects, "light");
         if (lightList.length > 0) {
-          this.animateModelRemove(this.buildingGroup);
+          this.destroyScene(this.buildingGroup);
+          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
           return;
         }
+        // 过滤出设备模型 door3-door
+        const door3List = this.filterModel(intersects, "door3-door");
+        door3List.length > 0 && this.openJfRecordList();
         // 过滤出设备模型 device
         const deviceList = this.filterModel(intersects, "device");
         //创建弹框并设置位置
         if (deviceList.length > 0) {
+          // 获取设备详情
+          // this.deviceDetail = await this.deviceInfo(
+          //   deviceList[0].object.parent.parent.name
+          // );
           this.createAdvertisement(e);
           return;
         }
@@ -350,10 +969,12 @@ export default {
           // 加载模型
           this.deviceList.forEach((el) => {
             const match = el.gasCabinteAddress.match(/^\d+/);
-            const offsetY = Number(match[0]);
+            let offsetY = Number(match[0]);
+            const typeUuid = el.gasStockType + "#" + el.uuid;
             if (match) {
               // 判断设备是几u
               const deviceNum = this.computedU(match.input);
+              if (deviceNum === "1U") offsetY = offsetY - 0.55;
               // 加载模型
               this.loadModel(
                 `/source/device-${el.gasStockType + deviceNum}.gltf`,
@@ -362,7 +983,7 @@ export default {
                 offsetX,
                 offsetY,
                 offsetZ,
-                el.uuid
+                typeUuid
               );
             }
           });
@@ -390,7 +1011,7 @@ export default {
           cityGroup.add(...gltf.scene.children);
           cityGroup.position.x = offsetX;
           cityGroup.position.z = offsetZ;
-          cityGroup.position.y += offsetY * (height / 42);
+          cityGroup.position.y += (offsetY - 1) * (height / 43) + 25;
           cityGroup.rotateY(Math.PI);
           //给每个设备绑定id
           cityGroup.name = _uuid;
@@ -531,7 +1152,10 @@ export default {
         return intersects.filter((el) => el.object.name.split("-")[0] === name);
       }
       if (name === "light") {
-        return intersects.filter((el) => el.object.name.split("-")[0] === name);
+        return intersects.filter((el) => el.object.name === name);
+      }
+      if (name === "door3-door") {
+        return intersects.filter((el) => el.object.name === name);
       }
     },
     // 计算设备是几U
