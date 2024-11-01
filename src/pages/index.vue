@@ -4,13 +4,14 @@
       <div class="mapHouseContainer" ref="threeBox"></div>
     </div>
     <div class="info2" ref="infoRef">
-      <p>信息:xxxxxxxxxxxxxxx</p>
-      <p>信息:xxxxxxxxxxxxxxx</p>
-      <p>信息:xxxxxxxxxxxxxxx</p>
-      <p>信息:xxxxxxxxxxxxxxx</p>
-      <p>信息:xxxxxxxxxxxxxxx</p>
-      <p>信息:xxxxxxxxxxxxxxx</p>
-      <p>信息:xxxxxxxxxxxxxxx</p>
+      <p>名称:服务器</p>
+      <p>所属机柜:机柜B7</p>
+      <p>IP地址:10.71.80.202</p>
+      <p>设备类型:服务器</p>
+      <p>网络连接:正常</p>
+      <p>关联应用系统:无</p>
+      <p>设备状态:正常</p>
+      <p>告警数量:0</p>
     </div>
   </div>
 </template>
@@ -18,7 +19,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import Tween from "@tweenjs/tween.js";
+import * as TWEEN from "@tweenjs/tween.js";
 // import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 // 导入gui
 import dat from "dat.gui"; // 引入 Axios
@@ -145,9 +146,9 @@ export default {
     },
     // 创建渲染器
     createRender() {
-      // 创建标尺
+      // 创建坐标系
       const axesHelper = new THREE.AxesHelper(100000);
-      // 把标尺添加到场景中
+      // 把坐标系添加到场景中
       this.scene.add(axesHelper);
       // 创建渲染器
       const element = this.$refs.threeBox;
@@ -176,6 +177,9 @@ export default {
       this.controls.update();
       // 递归调用渲染函数
       requestAnimationFrame(this.render);
+      // 更新 TWEEN
+      this.tweenRemove && this.tweenRemove.update();
+      this.tweenEnter && this.tweenEnter.update();
     },
     // 创建控件对象
     createControls() {
@@ -198,7 +202,7 @@ export default {
     // 创建一个长方体
     createBox() {
       // 创建一个几何体
-      const geometry = new THREE.BoxGeometry(10, 10, 1);
+      const geometry = new THREE.BoxGeometry(1000, 1000, 100);
       // 创建一个基础材质
       const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
       // 创建一个网格
@@ -223,7 +227,6 @@ export default {
         url,
         (gltf) => {
           console.log("🚀 ~ loader.load ~ gltf:", gltf);
-          this.gltfDl = gltf;
           gltf.scene.traverse(function (child) {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
@@ -236,15 +239,17 @@ export default {
             }
           });
           // 创建一个组
-          const cityGroup = new THREE.Group();
+          this.buildingGroup = new THREE.Group();
           // 创建一个组 （这样可以移动模型，其他办法暂时没有想到）
-          cityGroup.add(...gltf.scene.children);
-          cityGroup.position.y = position[1]; // 设置y轴位置
-          cityGroup.position.z = position[2]; // 设置y轴位置
-          cityGroup.scale.set(...scale); // 设置缩放
-          this.scene.add(cityGroup); // 把组添加到场景中
+          this.buildingGroup.add(...gltf.scene.children);
+          this.buildingGroup.position.y = position[1]; // 设置y轴位置
+          this.buildingGroup.position.z = position[2]; // 设置y轴位置
+          this.buildingGroup.scale.set(...scale); // 设置缩放
+          this.buildingGroup.visible = false;
+          this.scene.add(this.buildingGroup); // 把组添加到场景中
+          this.animateModelEnter(this.buildingGroup, scale);
           // 计算组模型的外边框
-          const box = new THREE.Box3().setFromObject(cityGroup);
+          const box = new THREE.Box3().setFromObject(this.buildingGroup);
           // 创建一个边框，把模型放进去（就是box）
           const helper = new THREE.Box3Helper(box, 0xffff00);
           // 获取组模型的中心点
@@ -303,31 +308,34 @@ export default {
         // setTimeout(() => {
         //   this.scene.remove(helper);
         // }, 1000);
-        // const
         // 过滤出设备模型 light
         const lightList = this.filterModel(intersects, "light");
         if (lightList.length > 0) {
-          this.visibleSpecificScene(this.scene);
-          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
+          this.animateModelRemove(this.buildingGroup);
+          return;
         }
         // 过滤出设备模型 device
         const deviceList = this.filterModel(intersects, "device");
         //创建弹框并设置位置
-        deviceList.length > 0 && this.createAdvertisement(e);
+        if (deviceList.length > 0) {
+          this.createAdvertisement(e);
+          return;
+        }
         // 过滤出设备模型 door
         const doorList = this.filterModel(intersects, "door");
-        console.log("🚀 ~ onmodelclick ~ doorList:", doorList);
-        const object = doorList[0];
         // 缓存中有则不再允许点击
-        if (doorList.length <= 0 || this.cachesModels.has(object.object))
+        if (doorList.length <= 0 || this.cachesModels.has(doorList[0].object)) {
           return;
-        this.cachesModels.add(object.object);
-        const id = object.object.name.split("-")[1];
+        }
+        this.cachesModels.add(doorList[0].object);
+        const id = doorList[0].object.name.split("-")[1];
         // 获取机柜实时数据
         this.deviceList = await this.getJgData(this.roomId, id);
-        if (object && this.deviceList.length > 0) {
+        if (doorList[0] && this.deviceList.length > 0) {
           // 计算模型的外边框
-          const box = new THREE.Box3().setFromObject(object.object);
+          const box = new THREE.Box3().setFromObject(
+            doorList[0].object.parent.parent
+          );
           // 通过外边框计算模型的中心点
           const center = box.getCenter(new THREE.Vector3());
           // 计算模型的中心点到世界中心的偏移量
@@ -338,7 +346,7 @@ export default {
           // console.log(positionToWorldCenter, "positionToWorldCenter");
           const height = box.max.y - box.min.y; // Y轴偏移
           const offsetX = positionToWorldCenter.x; // X轴偏移
-          const offsetZ = positionToWorldCenter.z - 200; // Z轴偏移
+          const offsetZ = positionToWorldCenter.z; // Z轴偏移
           // 加载模型
           this.deviceList.forEach((el) => {
             const match = el.gasCabinteAddress.match(/^\d+/);
@@ -348,14 +356,13 @@ export default {
               const deviceNum = this.computedU(match.input);
               // 加载模型
               this.loadModel(
-                // `/source/FWQ${deviceNum}.gltf`,
                 `/source/device-${el.gasStockType + deviceNum}.gltf`,
                 true,
                 height,
                 offsetX,
                 offsetY,
                 offsetZ,
-                object
+                el.uuid
               );
             }
           });
@@ -363,7 +370,7 @@ export default {
       }
     },
     // 加载设备模型
-    loadModel(url, isPlay, height, offsetX, offsetY, offsetZ, model) {
+    loadModel(url, isPlay, height, offsetX, offsetY, offsetZ, _uuid) {
       const loader = new GLTFLoader();
       loader.load(
         url,
@@ -385,6 +392,8 @@ export default {
           cityGroup.position.z = offsetZ;
           cityGroup.position.y += offsetY * (height / 42);
           cityGroup.rotateY(Math.PI);
+          //给每个设备绑定id
+          cityGroup.name = _uuid;
           // 把分组后的模型添加到场景中
           this.scene.add(cityGroup);
           // 把模型添加到场景中
@@ -406,9 +415,15 @@ export default {
     adjustModelAngle(model, position) {
       console.log("🚀 ~ adjustModelAngle ~ position:", position);
     },
-    //销毁所有模型
-    destroyScene(scene) {
-      scene.traverse((object) => {
+    //移除所有模型(并且释放资源)
+    destroyScene(buildingGroup) {
+      if (!buildingGroup) {
+        return;
+      }
+      //先移除所有模型
+      this.scene.remove(buildingGroup);
+      //释放资源
+      buildingGroup.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.geometry.dispose();
           if (object.material && object.material.map) {
@@ -417,15 +432,65 @@ export default {
           object.material.dispose();
         }
       });
-      scene.children = [];
     },
-    //隐藏模型
-    visibleSpecificScene(scene) {
+    //隐藏所有模型
+    visibleScene(scene) {
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
           object.visible = false;
         }
       });
+    },
+    //显示所有模型动画
+    animateModelEnter(model, scale) {
+      this.tweenEnter = new TWEEN.Tween({
+        scale: [0, 0, 0],
+      })
+        .to(
+          {
+            scale: scale,
+          },
+          1000
+        )
+        .easing(TWEEN.Easing.Quadratic.InOut)
+        .onUpdate(({ scale }) => {
+          model.scale.set(...scale);
+          model.visible = true;
+        })
+        .onComplete(() => {
+          this.tweenEnter = null;
+        })
+        .start();
+    },
+    //模型移除动画
+    animateModelRemove(model) {
+      this.tweenRemove = new TWEEN.Tween({
+        z: -6345,
+        scale: [0.4, 0.4, 0.4],
+      })
+        .to(
+          {
+            z: -12345,
+            scale: [0, 0, 0],
+          },
+          1000
+        )
+        .easing(TWEEN.Easing.Quadratic.InOut)
+        .onUpdate(({ z, scale }) => {
+          model.position.z = z;
+          model.scale.set(...scale);
+          // model.traverse((object) => {
+          //   console.log("🚀 ~ model.traverse ~ object:", object);
+          //   if (object instanceof THREE.Mesh) {
+          //     object.material.opacity = 0;
+          //   }
+          // });
+        })
+        .onComplete(() => {
+          this.destroyScene(model);
+          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
+        })
+        .start();
     },
     //创建弹框并设置位置
     createAdvertisement(e) {
@@ -483,6 +548,7 @@ export default {
   },
 };
 </script>
+
 <style scoped>
 .container {
   position: relative;
