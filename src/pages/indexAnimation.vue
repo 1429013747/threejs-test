@@ -1,5 +1,25 @@
 <template>
   <div class="container">
+    <button
+      style="z-index: 99; position: absolute"
+      @click="
+        () => {
+          $router.push('/');
+        }
+      "
+    >
+      index
+    </button>
+    <div class="blocker" ref="blocker">
+      <div class="instructions" ref="instructions">
+        <p style="font-size: 36px">Click to play</p>
+        <p>
+          Move: WASD<br />
+          Jump: SPACE<br />
+          Look: MOUSE
+        </p>
+      </div>
+    </div>
     <div class="map-house-box">
       <div class="mapHouseContainer" ref="threeBox"></div>
     </div>
@@ -18,12 +38,15 @@
 <script>
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import * as TWEEN from "@tweenjs/tween.js";
 // import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 // 导入gui
 import dat from "dat.gui"; // 引入 Axios
 import axios from "axios";
+
+import { throttle } from "@/utils/conmon";
 
 export default {
   data() {
@@ -41,6 +64,17 @@ export default {
       deviceList: {},
       roomId: "FEA02F8D097046CCB28959372D680B7C",
       cachesModels: new WeakSet(),
+
+      selControls: null, //选中的控件
+      moveForward: null, // 前进
+      moveBackward: null, // 后退
+      moveLeft: null, // 左移
+      moveRight: null, // 右移
+      canJump: null, // 跳跃
+      prevTime: performance.now(), // 上一次时间
+      velocity: new THREE.Vector3(), // 移动速度
+      direction: new THREE.Vector3(), // 移动方向
+      viewBool: true, //true表示第三人称，false表示第一人称
     };
   },
   activated() {},
@@ -48,8 +82,7 @@ export default {
   wacth: {},
   created() {},
   mounted() {
-    const element = this.$refs.threeBox;
-    element.addEventListener("click", this.onmodelclick);
+    this.$refs.threeBox.addEventListener("click", this.onmodelclick);
     this.clock = new THREE.Clock(); // 创建时钟
     this.init(); // 初始化
   },
@@ -174,7 +207,8 @@ export default {
       // 每一帧更新渲染
       this.renderer.render(this.scene, this.camera);
       // 每一帧更新控制器（不然设置控制器属性会是失效）
-      this.controls.update();
+      // this.controls.update();
+      this.keyboardControl();
       // 递归调用渲染函数
       requestAnimationFrame(this.render);
       // 更新 TWEEN
@@ -184,21 +218,149 @@ export default {
     // 创建控件对象
     createControls() {
       // 创建控件对象
-      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-      // this.controls.enableDamping = true; // 打开阻尼(默认false)
-      // this.controls.dampingFactor = 0.25; // 设置阻尼系数
-      // this.controls.enableRotate = true; // 开启旋转(默认true)
-      // this.controls.enableZoom = true; // 开启缩放(默认true)
-      // this.controls.enablePan = true; // 开启平移(默认true)
-      // this.controls.autoRotate = true; // 开启自动旋转(默认false)
-      // this.controls.autoRotateSpeed = 2; //设置旋转速度
-      // this.controls.enabled = true; // 开启控件(默认true)
-      // this.controls.target.x = 0; // 设置控件焦点x
-      // this.controls.target.y = 0; // 设置控件焦点y
-      // this.controls.target.z = 0; // 设置控件焦点z
-      // this.controls.object.rotation.set(Math.PI / 4, Math.PI / 4, 0);
-      this.controls.update();
+      // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      // // this.controls.enableDamping = true; // 打开阻尼(默认false)
+      // // this.controls.dampingFactor = 0.25; // 设置阻尼系数
+      // // this.controls.enableRotate = true; // 开启旋转(默认true)
+      // // this.controls.enableZoom = true; // 开启缩放(默认true)
+      // // this.controls.enablePan = true; // 开启平移(默认true)
+      // // this.controls.autoRotate = true; // 开启自动旋转(默认false)
+      // // this.controls.autoRotateSpeed = 2; //设置旋转速度
+      // // this.controls.enabled = true; // 开启控件(默认true)
+      // // this.controls.target.x = 0; // 设置控件焦点x
+      // // this.controls.target.y = 0; // 设置控件焦点y
+      // // this.controls.target.z = 0; // 设置控件焦点z
+      // // this.controls.object.rotation.set(Math.PI / 4, Math.PI / 4, 0);
+      // this.controls.update();
+      this.selView();
     },
+    // 键盘控制视角
+    keyboardControl() {
+      const time = performance.now(); //eslint-disable-line
+      if (this.selControls) {
+        if (this.selControls.isLocked) {
+          const delta = (time - this.prevTime) / 1000;
+          this.velocity.x -= this.velocity.x * 100.0 * delta;
+          this.velocity.z -= this.velocity.z * 100.0 * delta;
+          this.velocity.y -= 9.8 * 200.0 * delta; // 控制跳跃的高度
+          this.direction.normalize(); // 这确保了各个方向的一致运动
+          if (this.moveForward) {
+            this.velocity.z -= this.direction.z + 20100 * delta; // 可控制z移动的速度
+          }
+          if (this.moveBackward) {
+            this.velocity.z += this.direction.z + 20100 * delta; // 可控制z移动的速度
+          }
+          if (this.moveRight) {
+            this.velocity.x -= this.direction.x + 20100 * delta; // 可控制x移动的速度
+          }
+          if (this.moveLeft) {
+            this.velocity.x += this.direction.x + 20100 * delta; // 可控制x移动的速度
+          }
+
+          this.selControls.moveRight(-this.velocity.x * delta);
+          this.selControls.moveForward(-this.velocity.z * delta);
+          this.selControls.getObject().position.y += this.velocity.y * delta; // new behavior
+          // console.log(
+          //   "🚀 ~ keyboardControl ~ this.selControls.getObject().position.y:",
+          //   this.selControls.getObject().position.y
+          // );
+
+          if (this.selControls.getObject().position.y < 5) {
+            this.velocity.y = 0;
+            this.selControls.getObject().position.y = 5; // 视角锁定时y轴的高度
+            // this.selControls.position.set(0, 5, 10);
+            this.canJump = true;
+          }
+        }
+        this.prevTime = time;
+      }
+    },
+    // 锁定第一视角
+    selView() {
+      this.selControls = new PointerLockControls(this.camera, document.body);
+      this.$refs.blocker.addEventListener(
+        "click",
+        throttle(() => {
+          this.selControls.lock(); // 锁定第一视角;
+        }, 1500)
+      );
+
+      this.selControls.addEventListener("lock", () => {
+        if (this.$refs.blocker) this.$refs.blocker.style.display = "none";
+      });
+
+      this.selControls.addEventListener("unlock", () => {
+        if (this.$refs.blocker) this.$refs.blocker.style.display = "block";
+      });
+
+      document.addEventListener("keydown", this.onKeyDown, false);
+      document.addEventListener("keyup", this.onKeyUp, false);
+    },
+
+    onKeyDown(event) {
+      console.log("🚀 ~ onKeyDown ~ event:", event);
+      switch (event.keyCode) {
+        case 38: // up
+        case 87: // w
+          this.moveForward = true;
+          break;
+
+        case 37: // left
+        case 65: // a
+          this.moveLeft = true;
+          break;
+
+        case 40: // down
+        case 83: // s
+          this.moveBackward = true;
+          break;
+
+        case 39: // right
+        case 68: // d
+          this.moveRight = true;
+          break;
+
+        case 32: // space
+          if (this.canJump === true) this.velocity.y += 950;
+          this.canJump = false;
+          break;
+
+        case 86: // space
+          if (this.viewBool) {
+            // 切换到第一人称
+            this.camera.position.z = 1; //相机在人前面一点 看不到人模型即可(第一人称)
+          } else {
+            // 切换到第三人称
+            this.camera.position.z = -2.3; //相机在人后面一点（第三人称）
+          }
+          this.viewBool = !this.viewBool;
+          break;
+      }
+    },
+    onKeyUp(event) {
+      switch (event.keyCode) {
+        case 38: // up
+        case 87: // w
+          this.moveForward = false;
+          break;
+
+        case 37: // left
+        case 65: // a
+          this.moveLeft = false;
+          break;
+
+        case 40: // down
+        case 83: // s
+          this.moveBackward = false;
+          break;
+
+        case 39: // right
+        case 68: // d
+          this.moveRight = false;
+          break;
+      }
+    },
+
     // 创建一个长方体
     createBox() {
       // 创建一个几何体
@@ -546,12 +708,41 @@ export default {
       }
     },
   },
+  beforeDestroy() {
+    this.$refs.threeBox.removeEventListener("click", this.onmodelclick, false);
+    window.removeEventListener("resize", this.onWindowResize, false);
+    document.removeEventListener("keydown", this.onKeyDown, false);
+    document.removeEventListener("keyup", this.onKeyUp, false);
+  },
 };
 </script>
 
 <style scoped>
 .container {
   position: relative;
+
+  .blocker {
+    position: absolute;
+    width: 100%;
+    height: 700px;
+    background-color: rgba(138, 135, 135, 0.5);
+    border-radius: 2.5rem 2.5rem 2rem 2rem !important;
+    z-index: 2;
+  }
+
+  .instructions {
+    width: 100%;
+    height: 700px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+  }
   .map-house-box {
     /* width: 18rem;
     height: 11rem;

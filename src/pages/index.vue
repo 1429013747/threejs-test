@@ -1,5 +1,15 @@
 <template>
   <div class="container">
+    <button
+      style="z-index: 99; position: absolute"
+      @click="
+        () => {
+          $router.push('/indexAnimation');
+        }
+      "
+    >
+      animation
+    </button>
     <div class="map-house-box">
       <div class="mapHouseContainer" ref="threeBox"></div>
     </div>
@@ -28,7 +38,8 @@ import dat from "dat.gui"; // 引入 Axios
 import axios from "axios";
 
 // import DialogListJfjcRecord from "@/components/DialogList-JfjcRecord";
-
+import { DragControls } from "three/addons/controls/DragControls.js";
+import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js";
 export default {
   // components: { DialogListJfjcRecord },
   // props: {
@@ -621,6 +632,16 @@ export default {
           total: 0,
         },
       },
+
+      selControls: null, //选中的控件
+      moveForward: null, // 前进
+      moveBackward: null, // 后退
+      moveLeft: null, // 左移
+      moveRight: null, // 右移
+      canJump: null, // 跳跃
+      prevTime: performance.now(), // 上一次时间
+      velocity: new THREE.Vector3(), // 移动速度
+      direction: new THREE.Vector3(), // 移动方向
     };
   },
   activated() {},
@@ -628,8 +649,7 @@ export default {
   wacth: {},
   created() {},
   mounted() {
-    const element = this.$refs.threeBox;
-    element.addEventListener("click", this.onmodelclick);
+    this.$refs.threeBox.addEventListener("click", this.onmodelclick);
     this.clock = new THREE.Clock(); // 创建时钟
     this.init(); // 初始化
   },
@@ -724,6 +744,8 @@ export default {
     // 创建场景
     createScene() {
       this.scene = new THREE.Scene();
+      // this.scene.fog = new THREE.Fog(0xcccccc, 10, 10000);
+      // this.scene.fog = new THREE.FogExp2(0xcccccc, 0.0002);
     },
     // 创建光源
     createLight() {
@@ -757,7 +779,6 @@ export default {
       //展示相机
       // const cameraHelper = new THREE.CameraHelper(this.camera);
       // this.scene.add(cameraHelper);
-
       this.scene.add(this.camera);
     },
     // 创建渲染器
@@ -771,16 +792,19 @@ export default {
       // 创建渲染器
       this.renderer = new THREE.WebGLRenderer({
         antialias: true, // 抗锯齿
+        preserveDrawingBuffer: true, // 保存绘图缓冲区
         alpha: false, // 透明背景
-        side: THREE.DoubleSide,
+        side: THREE.DoubleSide, //双面渲染
+        logarithmicDepthBuffer: true, // 对数深度缓冲（让threejs更容易区分模型两个面，谁在前，谁在后,距离太近也没有用了。）
       });
       this.renderer.setSize(element.clientWidth, element.clientHeight); // 设置渲染器大小
+      this.renderer.setPixelRatio(window.devicePixelRatio); // 设置设备像素比
       this.renderer.shadowMap.enabled = true; // 启用阴影
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 阴影类型
       this.renderer.setClearColor(0x2d4057, 1); // 设置渲染器背景颜色
       element.appendChild(this.renderer.domElement); // 将渲染器添加到页面中
     },
-    // 渲染
+    // 递归渲染
     render() {
       // 获取两帧之间的时间间隔
       const deltaTime = this.clock.getDelta();
@@ -790,7 +814,7 @@ export default {
       // 每一帧更新渲染
       this.renderer.render(this.scene, this.camera);
       // 每一帧更新控制器（不然设置控制器属性会是失效）
-      this.controls.update();
+      this.controls.update(deltaTime);
       // 递归调用渲染函数
       requestAnimationFrame(this.render);
     },
@@ -798,10 +822,10 @@ export default {
     createControls() {
       // 创建控件对象
       this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-      // this.controls.enableDamping = true; // 打开阻尼(默认false)
-      // this.controls.dampingFactor = 0.25; // 设置阻尼系数
+      this.controls.enableDamping = true; // 打开阻尼(默认false)
+      this.controls.dampingFactor = 0.25; // 设置阻尼系数
       // this.controls.enableRotate = true; // 开启旋转(默认true)
-      // this.controls.enableZoom = true; // 开启缩放(默认true)
+      this.controls.enableZoom = true; // 开启缩放(默认true)
       // this.controls.enablePan = true; // 开启平移(默认true)
       // this.controls.autoRotate = true; // 开启自动旋转(默认false)
       // this.controls.autoRotateSpeed = 2; //设置旋转速度
@@ -923,7 +947,7 @@ export default {
         const lightList = this.filterModel(intersects, "light");
         if (lightList.length > 0) {
           this.destroyScene(this.buildingGroup);
-          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
+          this.loadGLTF("/source/行政服务中心.gltf", [0, 345, 0], [1, 1, 1]);
           return;
         }
         // 过滤出设备模型 door3-door
@@ -950,7 +974,7 @@ export default {
         const id = doorList[0].object.name.split("-")[1];
         // 获取机柜实时数据
         this.deviceList = await this.getJgData(this.roomId, id);
-        if (doorList[0] && this.deviceList.length > 0) {
+        if (doorList[0] && this.deviceList.length >= 0) {
           // 计算模型的外边框
           const box = new THREE.Box3().setFromObject(
             doorList[0].object.parent.parent
@@ -967,7 +991,7 @@ export default {
           const offsetX = positionToWorldCenter.x; // X轴偏移
           const offsetZ = positionToWorldCenter.z; // Z轴偏移
           // 加载模型
-          this.deviceList.forEach((el) => {
+          this.ddd.forEach((el) => {
             const match = el.gasCabinteAddress.match(/^\d+/);
             let offsetY = Number(match[0]);
             const typeUuid = el.gasStockType + "#" + el.uuid;
@@ -1011,7 +1035,7 @@ export default {
           cityGroup.add(...gltf.scene.children);
           cityGroup.position.x = offsetX;
           cityGroup.position.z = offsetZ;
-          cityGroup.position.y += (offsetY - 1) * (height / 43) + 25;
+          cityGroup.position.y += (offsetY - 1) * (height / 45) + 60;
           cityGroup.rotateY(Math.PI);
           //给每个设备绑定id
           cityGroup.name = _uuid;
@@ -1100,12 +1124,6 @@ export default {
         .onUpdate(({ z, scale }) => {
           model.position.z = z;
           model.scale.set(...scale);
-          // model.traverse((object) => {
-          //   console.log("🚀 ~ model.traverse ~ object:", object);
-          //   if (object instanceof THREE.Mesh) {
-          //     object.material.opacity = 0;
-          //   }
-          // });
         })
         .onComplete(() => {
           this.destroyScene(model);
@@ -1126,9 +1144,9 @@ export default {
       }
       this.$refs.infoRef.style = `transform: translate(${offsetX + 20}px, ${
         offsetY - 150
-      }px);opacity:1;`;
+      }px);display:block;`;
       window.addEventListener("mousemove", (e) => {
-        if (this.$refs.infoRef) this.$refs.infoRef.style = "opacity:0";
+        if (this.$refs.infoRef) this.$refs.infoRef.style = "display:'';";
       });
     },
     //让模型自适应窗口
@@ -1170,6 +1188,10 @@ export default {
       }
     },
   },
+  beforeDestroy() {
+    this.$refs.threeBox.removeEventListener("click", this.onmodelclick);
+    window.removeEventListener("resize", this.onWindowResize, false);
+  },
 };
 </script>
 
@@ -1206,7 +1228,8 @@ export default {
     padding: 10px;
     box-sizing: border-box;
     z-index: 999;
-    opacity: 0;
+    /* opacity: 0; */
+    display: none;
     font-size: 19px;
     color: #000;
     border: 1px solid #000;
