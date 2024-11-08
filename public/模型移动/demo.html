@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    .box:has(.ff) .bb {
+        color: red;
+    }
+</style>
+
+<body>
+
+    <div class="box">
+        <div>
+            <p class="ff">asdf</p>
+        </div>
+        <p class="bb">拉开圣诞节分厘卡是</p>
+    </div>
+    <div class="box">
+        <p class="cc">asdf</p>
+        <p class="aa">拉开圣诞节分厘卡是</p>
+    </div>
+    <input type="text"
+        style="width: 160px;height: 100px;word-wrap: break-word;white-space: pre-wrap;overflow-wrap: break-word;">
+    <input type="text" id="myInput" value="Thisisalongtextthatwillwrapinsidetheinputfield"
+        style="word-wrap: break-word;">
+    <input type="text" id="myInput" value="This is a long text that will wrap inside the input field"
+        style="max-width: 200px; white-space: pre-wrap;">
+
+</body>
+
+</html>

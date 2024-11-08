@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>学习</title>
+</head>
+
+<body>
+  <canvas id="c3d" class="c3d" width="1000" height="500"></canvas>
+  <script type="importmap">
+		{
+			"imports": {
+				"three": "./three.js-master/build/three.module.js"
+			}
+		}
+	</script>
+  <script type="module">
+    import * as THREE from './three.js-master/build/three.module.js'
+    import { OrbitControls } from './three.js-master/examples/jsm/controls/OrbitControls.js'
+    import { FBXLoader } from './three.js-master/examples/jsm/loaders/FBXLoader.js'
+
+    const canvas = document.querySelector('#c3d')
+    // 渲染器
+    const renderer = new THREE.WebGLRenderer({ canvas })
+    // 开启阴影渲染
+    renderer.shadowMap.enabled = true
+
+    const fov = 40 // 视野范围
+    const aspect = 2 // 相机默认值 画布的宽高比
+    const near = 0.1 // 近平面
+    const far = 10000 // 远平面
+    // 透视投影相机
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far)
+    // camera.position.set(1000, 500, 1500)
+    camera.position.set(-1000, 1000, 100)
+    camera.lookAt(0, 0, 0)
+    // 控制相机
+    const controls = new OrbitControls(camera, canvas)
+    controls.update()
+
+    // 场景
+    const scene = new THREE.Scene()
+
+    // 背景
+    scene.background = new THREE.Color(0x87ceeb)
+    // 雾
+    scene.fog = new THREE.Fog(0x87ceeb, 200, 10000)
+
+    // 辅助
+    // const axes = new THREE.AxisHelper(700)
+    // scene.add(axes)
+
+    {
+      // 灯光
+      const skyColor = 0xffffff // 天空 白色
+      const groundColor = 0x000000 // 地面 黑色
+      const intensity = 1 // 强度
+      const light = new THREE.HemisphereLight(skyColor, groundColor, intensity)
+      scene.add(light)
+    }
+
+    let dLight = null
+    {
+      const light = new THREE.DirectionalLight(0xaaaaaa) // 方向光
+      light.position.set(0, 200, 100) // 方向光位置
+      light.lookAt(new THREE.Vector3())// 方向光朝向
+
+      light.castShadow = true // 开启阴影投射
+      light.shadow.camera.top = 300 // 阴影相机的上边界
+      light.shadow.camera.bottom = -300 // 阴影相机的下边界
+      light.shadow.camera.left = -300 // 阴影相机的左边界
+      light.shadow.camera.right = 300 // 阴影相机的右边界
+
+      dLight = light
+      scene.add(light)
+    }
+
+    {
+      // 地面
+      const loader = new THREE.TextureLoader()// 纹理加载器
+      const texture = loader.load('1.jpg')
+      console.log("🚀 ~ texture:", texture)
+      texture.wrapS = THREE.RepeatWrapping // 纹理重复
+      texture.wrapT = THREE.RepeatWrapping // 纹理重复
+      texture.magFilter = THREE.NearestFilter // 纹理过滤
+      // 纹理 重复
+      texture.repeat.set(100, 100)
+
+      const planeGeo = new THREE.PlaneGeometry(10000, 10000)
+      const planeMat = new THREE.MeshPhongMaterial({
+        map: texture,
+        side: THREE.DoubleSide
+      })
+      const mesh = new THREE.Mesh(planeGeo, planeMat)
+      mesh.rotation.x = Math.PI * -0.5
+
+      // 开启阴影接收
+      mesh.receiveShadow = true
+
+      scene.add(mesh)
+    }
+
+    let meshHY = null
+    let actions = [] // 所有的动画数组
+    let gui = {} // 动画控制
+    let mixer = null // AnimationMixer 对象
+    const loader = new FBXLoader()
+    loader.load('Naruto.fbx', function (mesh) {
+      mesh.position.y = 110
+
+      // 设置模型的每个部位都可以投影
+      mesh.traverse(function (child) {
+        if (child.isMesh) {
+          child.castShadow = true
+          child.receiveShadow = true
+        }
+      })
+
+      // 设置光线焦点模型
+      dLight.target = mesh
+      meshHY = mesh
+      scene.add(mesh)
+
+      mixer = new THREE.AnimationMixer(mesh)
+      for (var i = 0; i < mesh.animations.length; i++) {
+        actions[i] = mixer.clipAction(mesh.animations[i])
+      }
+      gui['action'] = function (s) {
+        for (var j = 0; j < actions.length; j++) {
+          if (j === s) {
+            actions[j].play()
+          } else {
+            actions[j].stop()
+          }
+        }
+      }
+      // 第24个动作是鸣人站立的动作
+      gui['action'](24)
+    })
+
+    let keyNum = 24 // 动作
+    document.onkeydown = function (e) {
+      if (e && e.keyCode == 32) {
+        if (keyNum === 27) {
+          keyNum = 1
+        }
+        keyNum += 1
+        gui['action'](keyNum)
+      }
+    }
+
+    // 监听键盘是否按下
+    let keyCodeW = false
+    let keyCodeS = false
+    let keyCodeA = false
+    let keyCodeD = false
+    let keyCodeK = false // 攻击
+    document.addEventListener(
+      'keydown',
+      (e) => {
+        var ev = e || window.event
+        switch (ev.keyCode) {
+          case 87:
+            keyCodeW = true
+            break
+          case 83:
+            keyCodeS = true
+            break
+          case 65:
+            keyCodeA = true
+            break
+          case 68:
+            keyCodeD = true
+            break
+          case 75:
+            keyCodeK = true
+            attack()
+            break
+          default:
+            break
+        }
+      },
+      false
+    )
+    document.addEventListener(
+      'keyup',
+      (e) => {
+        var ev = e || window.event
+        switch (ev.keyCode) {
+          case 87:
+            keyCodeW = false
+            break
+          case 83:
+            keyCodeS = false
+            break
+          case 65:
+            keyCodeA = false
+            break
+          case 68:
+            keyCodeD = false
+            break
+          default:
+            break
+        }
+      },
+      false
+    )
+
+    // 控制 移动
+    function onCodeMove(mesh) {
+      if (keyCodeW) {
+        mesh.position.x += 2
+        camera.position.x += 2
+        dLight.position.x += 2
+        mesh.rotation.y = Math.PI * 0.5
+      }
+      if (keyCodeA) {
+        mesh.position.z -= 2
+        camera.position.z -= 2
+        dLight.position.z -= 2
+        mesh.rotation.y = Math.PI
+      }
+      if (keyCodeS) {
+        mesh.position.x -= 2
+        camera.position.x -= 2
+        dLight.position.x -= 2
+        mesh.rotation.y = Math.PI * 1.5
+      }
+      if (keyCodeD) {
+        mesh.position.z += 2
+        camera.position.z += 2
+        dLight.position.z += 2
+        mesh.rotation.y = Math.PI * 2
+      }
+
+      if (keyCodeW && keyCodeD) {
+        mesh.rotation.y = Math.PI * 0.25
+      }
+      if (keyCodeW && keyCodeA) {
+        mesh.rotation.y = Math.PI * 0.75
+      }
+      if (keyCodeA && keyCodeS) {
+        mesh.rotation.y = Math.PI * 1.25
+      }
+      if (keyCodeS && keyCodeD) {
+        mesh.rotation.y = Math.PI * 1.75
+      }
+
+      if (keyCodeK) {
+      } else {
+        resetMove()
+      }
+    }
+
+    let moveNum = false
+    // 重置移动
+    function resetMove() {
+      // 按下键盘 跑步动画
+      if (keyCodeW || keyCodeS || keyCodeA || keyCodeD) {
+        gui['action'](3)
+        moveNum = true
+      } else {
+        // 只执行一次
+        if (moveNum) {
+          moveNum = false
+          gui['action'](24)
+        }
+      }
+    }
+
+    // 踢 8 9 10
+    let attackList = [12, 8, 9, 10] // 连招的循序
+    let attackCombo = true
+    let skills = 0 // 下标
+    let clickNum = 0 // 点击次数
+
+    // 模型攻击
+    function attack() {
+      clickNum++
+      if (attackCombo) {
+        attackCombo = false
+
+        // 执行第一个动画
+        gui['action'](attackList[skills])
+        timeCallback()
+      }
+    }
+
+    function timeCallback() {
+      setTimeout(function () {
+        // 进行下一个动作
+        skills++
+        // 判断点击次数是否还有下一个动作，如果全部动作完成结束循环
+        if (skills === clickNum || skills > attackList.length - 1) {
+          skills = 0
+          clickNum = 0
+          attackCombo = true
+          keyCodeK = false
+          moveNum = true
+          resetMove()
+        } else {
+          gui['action'](attackList[skills])
+          timeCallback()
+        }
+      }, meshHY.animations[attackList[skills]].duration * 1000)
+    }
+
+    const clock = new THREE.Clock()
+    // 渲染
+    function render() {
+      const time = clock.getDelta()
+      if (mixer) {
+        mixer.update(time)
+      }
+
+      if (meshHY) {
+        onCodeMove(meshHY)
+      }
+
+      // controls.update()
+      renderer.render(scene, camera)
+      requestAnimationFrame(render)
+    }
+    requestAnimationFrame(render)
+  </script>
+</body>
+
+</html>
