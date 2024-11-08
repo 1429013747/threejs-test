@@ -36,17 +36,17 @@
   </div>
 </template>
 <script>
-import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import * as TWEEN from '@tweenjs/tween.js';
+import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import * as TWEEN from "@tweenjs/tween.js";
 // import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 // 导入gui
-import dat from 'dat.gui'; // 引入 Axios
-import axios from 'axios';
+import dat from "dat.gui"; // 引入 Axios
+import axios from "axios";
 
-import { throttle } from '@/utils/conmon';
+import { throttle } from "@/utils/conmon";
 
 export default {
   data() {
@@ -62,7 +62,7 @@ export default {
       loader: null, // 加载器
       gui: null, // gui
       deviceList: {},
-      roomId: 'FEA02F8D097046CCB28959372D680B7C',
+      roomId: "FEA02F8D097046CCB28959372D680B7C",
       cachesModels: new WeakSet(),
 
       selControls: null, //选中的控件
@@ -82,7 +82,7 @@ export default {
   wacth: {},
   created() {},
   mounted() {
-    this.$refs.threeBox.addEventListener('click', this.onmodelclick);
+    this.$refs.threeBox.addEventListener("click", this.onmodelclick);
     this.clock = new THREE.Clock(); // 创建时钟
     this.init(); // 初始化
   },
@@ -98,7 +98,7 @@ export default {
         // });
         axios({
           url: `/risen-dyw-api/public/cockpit/assets/cabinetAssetsList?roomUuid=${roomId}&cabinetUuid=${jgId}`,
-          method: 'post', //get
+          method: "post", //get
         })
           .then(async (response) => {
             const { data } = response;
@@ -108,7 +108,7 @@ export default {
             }
           })
           .catch((error) => {
-            console.error('请求出错：', error);
+            console.error("请求出错：", error);
           });
       });
     },
@@ -117,7 +117,7 @@ export default {
       this.createScene(); // 创建场景
       this.createCamera(); // 创建相机
       this.createLight(); // 创建光源
-      this.loadGLTF('/source/大楼.gltf', [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
+      this.loadGLTF("/source/大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
       // this.createBox(); // 加载 GLTF 模型
       // this.gui(); // 创建GUI
       this.createRender(); // 创建渲染器
@@ -129,13 +129,13 @@ export default {
     createGui() {
       this.gui = new dat.GUI();
       // 调整相机gui
-      this.cameraFolder = this.gui.addFolder('Camera');
-      this.cameraFolder.add(this.camera.position, 'x', -10000, 10000);
-      this.cameraFolder.add(this.camera.position, 'y', -10000, 20000);
-      this.cameraFolder.add(this.camera.position, 'z', -10000, 20000);
-      this.cameraFolder.add(this.camera.rotation, 'x', 0, Math.PI * 2);
-      this.cameraFolder.add(this.camera.rotation, 'y', 0, Math.PI * 2);
-      this.cameraFolder.add(this.camera.rotation, 'z', 0, Math.PI * 2);
+      this.cameraFolder = this.gui.addFolder("Camera");
+      this.cameraFolder.add(this.camera.position, "x", -10000, 10000);
+      this.cameraFolder.add(this.camera.position, "y", -10000, 20000);
+      this.cameraFolder.add(this.camera.position, "z", -10000, 20000);
+      this.cameraFolder.add(this.camera.rotation, "x", 0, Math.PI * 2);
+      this.cameraFolder.add(this.camera.rotation, "y", 0, Math.PI * 2);
+      this.cameraFolder.add(this.camera.rotation, "z", 0, Math.PI * 2);
       this.cameraFolder.open();
     },
     // 创建场景
@@ -279,26 +279,26 @@ export default {
     selView() {
       this.selControls = new PointerLockControls(this.camera, document.body);
       this.$refs.blocker.addEventListener(
-        'click',
+        "click",
         throttle(() => {
           this.selControls.lock(); // 锁定第一视角;
         }, 1500)
       );
 
-      this.selControls.addEventListener('lock', () => {
-        if (this.$refs.blocker) this.$refs.blocker.style.display = 'none';
+      this.selControls.addEventListener("lock", () => {
+        if (this.$refs.blocker) this.$refs.blocker.style.display = "none";
       });
 
-      this.selControls.addEventListener('unlock', () => {
-        if (this.$refs.blocker) this.$refs.blocker.style.display = 'block';
+      this.selControls.addEventListener("unlock", () => {
+        if (this.$refs.blocker) this.$refs.blocker.style.display = "block";
       });
 
-      document.addEventListener('keydown', this.onKeyDown, false);
-      document.addEventListener('keyup', this.onKeyUp, false);
+      document.addEventListener("keydown", this.onKeyDown, false);
+      document.addEventListener("keyup", this.onKeyUp, false);
     },
 
     onKeyDown(event) {
-      console.log('🚀 ~ onKeyDown ~ event:', event);
+      console.log("🚀 ~ onKeyDown ~ event:", event);
       switch (event.keyCode) {
         case 38: // up
         case 87: // w
@@ -388,7 +388,7 @@ export default {
       loader.load(
         url,
         (gltf) => {
-          console.log('🚀 ~ loader.load ~ gltf:', gltf);
+          console.log("🚀 ~ loader.load ~ gltf:", gltf);
           gltf.scene.traverse(function (child) {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
@@ -436,7 +436,7 @@ export default {
           // console.log("🚀 ~ //loader.load ~ xhr:", xhr);
         },
         (error) => {
-          console.error('模型加载错误：', error);
+          console.error("模型加载错误：", error);
         }
       );
     },
@@ -455,7 +455,7 @@ export default {
       raycaster.setFromCamera(mouse, this.camera);
       // 计算物体和射线的焦点
       const intersects = raycaster.intersectObjects(this.scene.children);
-      console.log('🚀 ~ onmodelclick ~ intersects:', intersects);
+      console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
       if (intersects.length > 0) {
         // 计算模型的外边框
         // const box = new THREE.Box3().setFromObject(intersects[0].object);
@@ -468,26 +468,26 @@ export default {
         //   this.scene.remove(helper);
         // }, 1000);
         // 过滤出设备模型 light
-        const lightList = this.filterModel(intersects, 'light');
+        const lightList = this.filterModel(intersects, "light");
         if (lightList.length > 0) {
           this.animateModelRemove(this.buildingGroup);
           return;
         }
         // 过滤出设备模型 device
-        const deviceList = this.filterModel(intersects, 'device');
+        const deviceList = this.filterModel(intersects, "device");
         //创建弹框并设置位置
         if (deviceList.length > 0) {
           this.createAdvertisement(e);
           return;
         }
         // 过滤出设备模型 door
-        const doorList = this.filterModel(intersects, 'door');
+        const doorList = this.filterModel(intersects, "door");
         // 缓存中有则不再允许点击
         if (doorList.length <= 0 || this.cachesModels.has(doorList[0].object)) {
           return;
         }
         this.cachesModels.add(doorList[0].object);
-        const id = doorList[0].object.name.split('-')[1];
+        const id = doorList[0].object.name.split("-")[1];
         // 获取机柜实时数据
         this.deviceList = await this.getJgData(this.roomId, id);
         if (doorList[0] && this.deviceList.length > 0) {
@@ -521,7 +521,7 @@ export default {
       loader.load(
         url,
         (gltf) => {
-          console.log('🚀 ~ loader.load ~ gltf:', gltf);
+          console.log("🚀 ~ loader.load ~ gltf:", gltf);
           gltf.scene.traverse(function (child) {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
@@ -553,13 +553,13 @@ export default {
           // console.log("🚀 ~ //loader.load ~ xhr:", xhr);
         },
         (error) => {
-          console.error('模型加载错误：', error);
+          console.error("模型加载错误：", error);
         }
       );
     },
     //调整模型角度
     adjustModelAngle(model, position) {
-      console.log('🚀 ~ adjustModelAngle ~ position:', position);
+      console.log("🚀 ~ adjustModelAngle ~ position:", position);
     },
     //移除所有模型(并且释放资源)
     destroyScene(buildingGroup) {
@@ -634,7 +634,7 @@ export default {
         })
         .onComplete(() => {
           this.destroyScene(model);
-          this.loadGLTF('/source/中心机房-空机柜.gltf', [0, 345, 0], [1, 1, 1]);
+          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
         })
         .start();
     },
@@ -650,8 +650,8 @@ export default {
         offsetX = offsetX + infoDomHeight;
       }
       this.$refs.infoRef.style = `transform: translate(${offsetX + 20}px, ${offsetY - 150}px);opacity:1;`;
-      window.addEventListener('mousemove', (e) => {
-        if (this.$refs.infoRef) this.$refs.infoRef.style = 'opacity:0';
+      window.addEventListener("mousemove", (e) => {
+        if (this.$refs.infoRef) this.$refs.infoRef.style = "opacity:0";
       });
     },
     //让模型自适应窗口
@@ -664,37 +664,37 @@ export default {
         this.camera.updateProjectionMatrix(); // 更新相机投影矩阵
         this.renderer.setSize(width, height); // 设置渲染器大小
       }
-      window.addEventListener('resize', this.onWindowResize, false);
+      window.addEventListener("resize", this.onWindowResize, false);
     },
     //过滤模型
     filterModel(intersects, name) {
-      if (name === 'door') {
-        return intersects.filter((el) => el.object.name.split('-')[0] === name);
+      if (name === "door") {
+        return intersects.filter((el) => el.object.name.split("-")[0] === name);
       }
-      if (name === 'device') {
-        return intersects.filter((el) => el.object.name.split('-')[0] === name);
+      if (name === "device") {
+        return intersects.filter((el) => el.object.name.split("-")[0] === name);
       }
-      if (name === 'light') {
-        return intersects.filter((el) => el.object.name.split('-')[0] === name);
+      if (name === "light") {
+        return intersects.filter((el) => el.object.name.split("-")[0] === name);
       }
     },
     // 计算设备是几U
     computedU(str) {
-      const temp = str.split('-');
+      const temp = str.split("-");
       if (temp.length <= 1) {
-        return '1U';
+        return "1U";
       } else {
         const match = temp[1].match(/^\d+/);
-        const t = Number(match[0]) - Number(temp[0]) + 1 + 'U';
-        return t === '3U' ? '2U' : t;
+        const t = Number(match[0]) - Number(temp[0]) + 1 + "U";
+        return t === "3U" ? "2U" : t;
       }
     },
   },
   beforeDestroy() {
-    this.$refs.threeBox.removeEventListener('click', this.onmodelclick, false);
-    window.removeEventListener('resize', this.onWindowResize, false);
-    document.removeEventListener('keydown', this.onKeyDown, false);
-    document.removeEventListener('keyup', this.onKeyUp, false);
+    this.$refs.threeBox.removeEventListener("click", this.onmodelclick, false);
+    window.removeEventListener("resize", this.onWindowResize, false);
+    document.removeEventListener("keydown", this.onKeyDown, false);
+    document.removeEventListener("keyup", this.onKeyUp, false);
   },
 };
 </script>
