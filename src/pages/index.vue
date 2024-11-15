@@ -40,6 +40,8 @@ import axios from "axios";
 // import DialogListJfjcRecord from "@/components/DialogList-JfjcRecord";
 import { DragControls } from "three/addons/controls/DragControls.js";
 import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js";
+
+import _ from "lodash";
 export default {
   // components: { DialogListJfjcRecord },
   // props: {
@@ -620,6 +622,7 @@ export default {
       ],
       roomId: "FEA02F8D097046CCB28959372D680B7C",
       cachesModels: new WeakSet(),
+      manager: null, // 管理器
       JfjcRecordInfo: {
         uuid: "",
         isShow: false,
@@ -632,7 +635,7 @@ export default {
           total: 0,
         },
       },
-
+      cameraPosition: null,
       selControls: null, //选中的控件
       moveForward: null, // 前进
       moveBackward: null, // 后退
@@ -650,6 +653,13 @@ export default {
   created() {},
   mounted() {
     this.$refs.threeBox.addEventListener("click", this.onmodelclick);
+    window.addEventListener("keydown", (e) => {
+      if (e.code == "Space" && this.cameraPosition) {
+        this.animateCamera(this.cameraPosition, { x: 0, y: 7670, z: 8663 });
+        this.camera.lookAt(0, 0, 0); // 设置相机方向
+        this.cameraPosition = null;
+      }
+    });
     this.clock = new THREE.Clock(); // 创建时钟
     this.init(); // 初始化
   },
@@ -720,12 +730,13 @@ export default {
       this.createScene(); // 创建场景
       this.createCamera(); // 创建相机
       this.createLight(); // 创建光源
-      this.loadGLTF("/source/大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
+      this.loadGLTF("/source/行政服务中心大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
       // this.createBox(); // 加载 GLTF 模型
       // this.gui(); // 创建GUI
       this.createRender(); // 创建渲染器
       this.createControls(); // 创建控件对象
       this.render(); // 渲染
+      this.createManager(); // 控制器
       this.onWindowResize(); //让模型自适应窗口
     },
     // 创建GUI
@@ -746,6 +757,10 @@ export default {
       this.scene = new THREE.Scene();
       // this.scene.fog = new THREE.Fog(0xcccccc, 10, 10000);
       // this.scene.fog = new THREE.FogExp2(0xcccccc, 0.0002);
+    },
+    // 创建管理器
+    createManager() {
+      this.manager = new THREE.LoadingManager();
     },
     // 创建光源
     createLight() {
@@ -795,7 +810,7 @@ export default {
         preserveDrawingBuffer: true, // 保存绘图缓冲区
         alpha: false, // 透明背景
         side: THREE.DoubleSide, //双面渲染
-        logarithmicDepthBuffer: true, // 对数深度缓冲（让threejs更容易区分模型两个面，谁在前，谁在后,距离太近也没有用了。）
+        logarithmicDepthBuffer: true, // 对数深度缓冲（让threejs更容易区分模型两个面，谁在前，谁在后,距离太近也没有用了。防止闪烁）
       });
       this.renderer.setSize(element.clientWidth, element.clientHeight); // 设置渲染器大小
       this.renderer.setPixelRatio(window.devicePixelRatio); // 设置设备像素比
@@ -810,9 +825,11 @@ export default {
       const deltaTime = this.clock.getDelta();
       // 更新动画
       this.mixer && this.mixer.update(deltaTime);
-      // this.camera.lookAt(0, 0, 0); // 设置相机方向看向世界中心
       // 每一帧更新渲染
       this.renderer.render(this.scene, this.camera);
+      this.center && this.controls.target.copy(this.center);
+      this.tweenCamera && this.tweenCamera.update();
+      this.tweenEnter && this.tweenEnter.update();
       // 每一帧更新控制器（不然设置控制器属性会是失效）
       this.controls.update(deltaTime);
       // 递归调用渲染函数
@@ -825,7 +842,7 @@ export default {
       this.controls.enableDamping = true; // 打开阻尼(默认false)
       this.controls.dampingFactor = 0.25; // 设置阻尼系数
       // this.controls.enableRotate = true; // 开启旋转(默认true)
-      this.controls.enableZoom = true; // 开启缩放(默认true)
+      // this.controls.enableZoom = true; // 开启缩放(默认true)
       // this.controls.enablePan = true; // 开启平移(默认true)
       // this.controls.autoRotate = true; // 开启自动旋转(默认false)
       // this.controls.autoRotateSpeed = 2; //设置旋转速度
@@ -863,7 +880,7 @@ export default {
       loader.load(
         url,
         (gltf) => {
-          console.log("🚀 ~ loader.load ~ gltf:", gltf);
+          // console.log("🚀 ~ loader.load ~ gltf:", gltf);
           gltf.scene.traverse(function (child) {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
@@ -873,6 +890,7 @@ export default {
               // child.material.flatShading = true; // 平滑着色
               child.material.emissive = child.material.color; // 物体自发光
               child.material.emissiveMap = child.material.map; // 物体自发光贴图
+              child.scale.set(0.999, 0.999, 0.999); // 缩小0.01，防止模型闪烁
             }
           });
           // 创建一个组
@@ -889,7 +907,6 @@ export default {
           const helper = new THREE.Box3Helper(box, 0xffff00);
           // 获取组模型的中心点
           // this.centerJg = box.getCenter(new THREE.Vector3());
-          // console.log("🚀 ~ loadGLTF ~ centerJg:", this.centerJg);
           // this.scene.add(helper);
           this.scene.add(...gltf.scene.children); // 把模型添加到场景中
           if (gltf.animations.length > 0) {
@@ -928,7 +945,7 @@ export default {
       raycaster.setFromCamera(mouse, this.camera);
       // 计算物体和射线的焦点
       const intersects = raycaster.intersectObjects(this.scene.children);
-      console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
+      // console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
       if (intersects.length > 0) {
         // 计算模型的外边框
         // const box = new THREE.Box3().setFromObject(intersects[0].object);
@@ -944,7 +961,7 @@ export default {
         const lightList = this.filterModel(intersects, "light");
         if (lightList.length > 0) {
           this.destroyScene(this.buildingGroup);
-          this.loadGLTF("/source/行政服务中心.gltf", [0, 345, 0], [1, 1, 1]);
+          this.loadGLTF("/source/城运机房.gltf", [0, 345, 0], [1, 1, 1]);
           return;
         }
         // 过滤出设备模型 door3-door
@@ -970,18 +987,30 @@ export default {
         this.cachesModels.add(doorList[0].object);
         const id = doorList[0].object.name.split("-")[1];
         // 获取机柜实时数据
-        this.deviceList = await this.getJgData(this.roomId, id);
-        if (doorList[0] && this.deviceList.length >= 0) {
+        // this.deviceList = await this.getJgData(this.roomId, id);
+        if (doorList[0] || this.deviceList.length >= 0) {
           // 计算模型的外边框
           const box = new THREE.Box3().setFromObject(doorList[0].object.parent.parent);
           // 通过外边框计算模型的中心点
           const center = box.getCenter(new THREE.Vector3());
+          this.center = center;
           // 计算模型的中心点到世界中心的偏移量
           const positionToWorldCenter = new THREE.Vector3().subVectors(center, new THREE.Vector3(0, 0, 0));
-          // console.log(positionToWorldCenter, "positionToWorldCenter");
           const height = box.max.y - box.min.y; // Y轴偏移
           const offsetX = positionToWorldCenter.x; // X轴偏移
           const offsetZ = positionToWorldCenter.z; // Z轴偏移
+          // 1. 获取模型的世界变换矩阵并计算法向量的世界坐标
+          const worldNormal = doorList[0].face.normal.clone().transformDirection(doorList[0].object.matrixWorld.clone());
+          // 想要的距离，可以根据需要调整
+          const distance = 1200;
+          // 2. 计算相机在点击面前方的偏移位置
+          this.cameraPosition = new THREE.Vector3().addVectors(center, worldNormal.multiplyScalar(distance));
+          // 3. 设置相机位置，并使其朝向点击点
+          // this.camera.position.copy(cameraPosition);
+          await this.animateCamera(this.camera.position, this.cameraPosition);
+          this.manager.onLoad = () => {
+            this.animateModelEnter(doorList[0].object.parent);
+          };
           // 加载模型
           this.ddd.forEach((el) => {
             const match = el.gasCabinteAddress.match(/^\d+/);
@@ -992,19 +1021,19 @@ export default {
               const deviceNum = this.computedU(match.input);
               if (deviceNum === "1U") offsetY = offsetY - 0.55;
               // 加载模型
-              this.loadModel(`/source/device-${el.gasStockType + deviceNum}.gltf`, true, height, offsetX, offsetY, offsetZ, typeUuid);
+              this.loadModel(`/source/device-${el.gasStockType + deviceNum}.gltf`, true, height, offsetX, offsetY, offsetZ, doorList, typeUuid);
             }
           });
         }
       }
     },
     // 加载设备模型
-    loadModel(url, isPlay, height, offsetX, offsetY, offsetZ, _uuid) {
-      const loader = new GLTFLoader();
+    loadModel(url, isPlay, height, offsetX, offsetY, offsetZ, model, _uuid) {
+      const loader = new GLTFLoader(this.manager);
       loader.load(
         url,
         (gltf) => {
-          console.log("🚀 ~ loader.load ~ gltf:", gltf);
+          // console.log("🚀 ~ loader.load ~ gltf:", gltf);
           gltf.scene.traverse(function (child) {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
@@ -1023,26 +1052,48 @@ export default {
           cityGroup.rotateY(Math.PI);
           //给每个设备绑定id
           cityGroup.name = _uuid;
+
+          // 获取模型的世界变换矩阵并计算法向量的世界坐标
+          const worldNormal = model[0].face.normal.clone().transformDirection(model[0].object.matrixWorld);
+          // 确保朝向正确方向（可根据实际需求调整是否需要乘以 -1）
+          // this.worldNormal.multiplyScalar(-1);
+          // 假设模型的 Z 轴方向为“正面”，即 (0, 0, 1)
+          const modelFrontDirection = new THREE.Vector3(0, 0, 1);
+          // 计算旋转轴：使用模型的前向向量和点击面的法向量
+          const rotationAxis = new THREE.Vector3().crossVectors(modelFrontDirection, worldNormal).normalize();
+          // 计算旋转角度
+          let rotationAngle = Math.acos(modelFrontDirection.dot(worldNormal));
+          // 将旋转角度四舍五入到最近的 90 度 180 度 270 度 360 度
+          rotationAngle = Math.round(rotationAngle / (Math.PI / 2)) * (Math.PI / 2);
+          // console.log("🚀 ~ loadModel ~ rotationAngle:", rotationAngle);
+          // 创建四元数来表示旋转，并将其应用于 `cityGroup`
+          const rotationQuaternion = new THREE.Quaternion().setFromAxisAngle(rotationAxis, rotationAngle);
+
+          // rotationQuaternion.setFromEuler(new THREE.Euler(0, rotationAngle, 0, 'XYZ'));
+          // 将旋转应用到模型上
+          cityGroup.quaternion.multiply(rotationQuaternion);
+          // // 创建辅助线的材质
+          // const lineMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+          // // 创建辅助线
+          // const lineGeometry = new THREE.BufferGeometry().setFromPoints([cityGroup.position, this.camera.position]);
+          // const line = new THREE.Line(lineGeometry, lineMaterial);
+          // this.scene.add(line);
           // 把分组后的模型添加到场景中
           this.scene.add(cityGroup);
           // 把模型添加到场景中
           this.scene.add(gltf.scene);
 
           if (isPlay) {
-            this.action.play();
+            // this.action.play();
           }
         },
-        () => {
-          // console.log("🚀 ~ //loader.load ~ xhr:", xhr);
+        (e) => {
+          // console.log("模型加载进度：", e.loaded / e.total);
         },
         (error) => {
           console.error("模型加载错误：", error);
         }
       );
-    },
-    //调整模型角度
-    adjustModelAngle(model, position) {
-      console.log("🚀 ~ adjustModelAngle ~ position:", position);
     },
     //移除所有模型(并且释放资源)
     destroyScene(buildingGroup) {
@@ -1070,26 +1121,57 @@ export default {
         }
       });
     },
-    //显示所有模型动画
-    animateModelEnter(model, scale) {
-      this.tweenEnter = new TWEEN.Tween({
-        scale: [0, 0, 0],
-      })
-        .to(
-          {
-            scale: scale,
-          },
-          1000
-        )
-        .easing(TWEEN.Easing.Quadratic.InOut)
-        .onUpdate(({ scale }) => {
-          model.scale.set(...scale);
-          model.visible = true;
+    //camera动画
+    animateCamera(currentPosition, targetPosition) {
+      return new Promise((resolve, reject) => {
+        this.tweenCamera = new TWEEN.Tween({
+          x: currentPosition.x,
+          y: currentPosition.y,
+          z: currentPosition.z,
         })
-        .onComplete(() => {
-          this.tweenEnter = null;
-        })
-        .start();
+          .to(
+            {
+              x: targetPosition.x,
+              y: targetPosition.y,
+              z: targetPosition.z,
+            },
+            2000
+          )
+          .easing(TWEEN.Easing.Quadratic.Out)
+          .onUpdate(({ x, y, z }) => {
+            this.camera.position.set(x, y, z);
+          })
+          .onComplete(() => {
+            this.tweenCamera = null;
+
+            resolve();
+          })
+          .start();
+      });
+    },
+    //模型动画
+    animateModelEnter(model) {
+      const group = new THREE.Group();
+      group.add(model);
+      this.destroyScene(group);
+      // console.log("🚀 ~ animateModelEnter ~ model:", model.rotation.y);
+      // const computedDeg = (Math.PI * 2) / 3 - model.rotation.y;
+      // this.tweenEnter = new TWEEN.Tween({
+      //   rotateY: model.rotation.y,
+      // })
+      //   .to(
+      //     {
+      //       rotateY: computedDeg,
+      //     },
+      //     1000
+      //   )
+      //   .onUpdate(({ rotateY }) => {
+      //     model.rotation.set(0, rotateY, 0);
+      //   })
+      //   .onComplete(() => {
+      //     this.tweenEnter = null;
+      //   })
+      //   .start();
     },
     //模型移除动画
     animateModelRemove(model) {
@@ -1146,16 +1228,16 @@ export default {
     //过滤模型
     filterModel(intersects, name) {
       if (name === "door") {
-        return intersects.filter((el) => el.object.name.split("-")[0] === name);
+        return intersects[0].object.name.split("-")[0] === name ? intersects : [];
       }
       if (name === "device") {
-        return intersects.filter((el) => el.object.name.split("-")[0] === name);
+        return intersects[0].object.name.split("-")[0] === name ? intersects : [];
       }
       if (name === "light") {
-        return intersects.filter((el) => el.object.name === name);
+        return intersects[0].object.name === name ? intersects : [];
       }
       if (name === "door3-door") {
-        return intersects.filter((el) => el.object.name === name);
+        return intersects[0].object.name === name ? intersects : [];
       }
     },
     // 计算设备是几U

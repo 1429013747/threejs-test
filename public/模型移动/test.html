@@ -87,16 +87,14 @@
       // 纹理 重复
       texture.repeat.set(100, 100)
 
-      const planeGeo = new THREE.PlaneGeometry(10000, 10000)
+      const planeGeo = new THREE.PlaneGeometry(10000, 10000) // 平面几何体
       const planeMat = new THREE.MeshPhongMaterial({
         map: texture,
         side: THREE.DoubleSide
-      })
+      })// 网格材质
       const mesh = new THREE.Mesh(planeGeo, planeMat)
       mesh.rotation.x = Math.PI * -0.5
-
-      // 开启阴影接收
-      mesh.receiveShadow = true
+      mesh.receiveShadow = true// 开启阴影接收
 
       scene.add(mesh)
     }
@@ -107,13 +105,13 @@
     let mixer = null // AnimationMixer 对象
     const loader = new FBXLoader()
     loader.load('Naruto.fbx', function (mesh) {
+      console.log("🚀 ~ mesh:", mesh)
       mesh.position.y = 110
-
       // 设置模型的每个部位都可以投影
       mesh.traverse(function (child) {
         if (child.isMesh) {
-          child.castShadow = true
-          child.receiveShadow = true
+          child.castShadow = true // 开启阴影投射
+          child.receiveShadow = true // 开启阴影接收
         }
       })
 
@@ -122,7 +120,7 @@
       meshHY = mesh
       scene.add(mesh)
 
-      mixer = new THREE.AnimationMixer(mesh)
+      mixer = new THREE.AnimationMixer(mesh) // 动画混合器
       for (var i = 0; i < mesh.animations.length; i++) {
         actions[i] = mixer.clipAction(mesh.animations[i])
       }
@@ -141,6 +139,8 @@
 
     let keyNum = 24 // 动作
     document.onkeydown = function (e) {
+      // 32 空格键
+      // 27 ESC键
       if (e && e.keyCode == 32) {
         if (keyNum === 27) {
           keyNum = 1
@@ -288,11 +288,13 @@
     }
 
     function timeCallback() {
+      console.log(attackCombo);
       setTimeout(function () {
         // 进行下一个动作
         skills++
         // 判断点击次数是否还有下一个动作，如果全部动作完成结束循环
         if (skills === clickNum || skills > attackList.length - 1) {
+          console.log('skills', skills);
           skills = 0
           clickNum = 0
           attackCombo = true
@@ -305,6 +307,7 @@
         }
       }, meshHY.animations[attackList[skills]].duration * 1000)
     }
+
 
     const clock = new THREE.Clock()
     // 渲染
