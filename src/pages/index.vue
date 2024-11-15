@@ -988,7 +988,7 @@ export default {
         const id = doorList[0].object.name.split("-")[1];
         // 获取机柜实时数据
         // this.deviceList = await this.getJgData(this.roomId, id);
-        if (doorList[0] || this.deviceList.length >= 0) {
+        if (doorList[0] || this.deviceList.length > 0) {
           // 计算模型的外边框
           const box = new THREE.Box3().setFromObject(doorList[0].object.parent.parent);
           // 通过外边框计算模型的中心点
