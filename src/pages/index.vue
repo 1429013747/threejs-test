@@ -59,6 +59,8 @@ export default {
       cameraFolder: null, // 相机gui
       loader: null, // 加载器
       gui: null, // gui
+      tweenCamera: null,
+      tweenEnter: null,
       deviceList: [],
       ddd: [
         {
@@ -621,7 +623,8 @@ export default {
         },
       ],
       roomId: "FEA02F8D097046CCB28959372D680B7C",
-      cachesModels: new WeakSet(),
+      cachesModels: new Set(),
+      cacheId: "", // 缓存id
       manager: null, // 管理器
       JfjcRecordInfo: {
         uuid: "",
@@ -891,6 +894,11 @@ export default {
               child.material.emissive = child.material.color; // 物体自发光
               child.material.emissiveMap = child.material.map; // 物体自发光贴图
               child.scale.set(0.999, 0.999, 0.999); // 缩小0.01，防止模型闪烁
+              if (child.name.startsWith("door")) {
+                child.mark = true;
+                child.loaded = false;
+                child.rotation.set(0, 0, 0);
+              }
             }
           });
           // 创建一个组
@@ -945,7 +953,7 @@ export default {
       raycaster.setFromCamera(mouse, this.camera);
       // 计算物体和射线的焦点
       const intersects = raycaster.intersectObjects(this.scene.children);
-      // console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
+      console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
       if (intersects.length > 0) {
         // 计算模型的外边框
         // const box = new THREE.Box3().setFromObject(intersects[0].object);
@@ -961,7 +969,7 @@ export default {
         const lightList = this.filterModel(intersects, "light");
         if (lightList.length > 0) {
           this.destroyScene(this.buildingGroup);
-          this.loadGLTF("/source/城运机房.gltf", [0, 345, 0], [1, 1, 1]);
+          this.loadGLTF("/source/行政服务中心.gltf", [0, 345, 0], [1, 1, 1]);
           return;
         }
         // 过滤出设备模型 door3-door
@@ -980,15 +988,27 @@ export default {
         }
         // 过滤出设备模型 door
         const doorList = this.filterModel(intersects, "door");
-        // 缓存中有则不再允许点击
-        if (doorList.length <= 0 || this.cachesModels.has(doorList[0].object)) {
-          return;
-        }
-        this.cachesModels.add(doorList[0].object);
-        const id = doorList[0].object.name.split("-")[1];
-        // 获取机柜实时数据
-        // this.deviceList = await this.getJgData(this.roomId, id);
+
         if (doorList[0] || this.deviceList.length > 0) {
+          this.cacheId = doorList[0].object.name.split("-")[1];
+          // 缓存中有则不再允许点击
+          if (this.cachesModels.has(this.cacheId)) {
+            if (doorList[0].object.loaded) {
+              if (doorList[0].object.mark) {
+                this.animateModelEnter(doorList[0].object.parent, (Math.PI / 3) * 2, 0);
+              } else {
+                this.animateModelEnter(doorList[0].object.parent, 0, (Math.PI / 3) * 2);
+              }
+              doorList[0].object.mark = !doorList[0].object.mark;
+              doorList[1].object.mark = !doorList[1].object.mark;
+              return;
+            }
+          }
+
+          this.cachesModels.add(this.cacheId);
+          console.log(this.cachesModels);
+          // 获取机柜实时数据
+          // this.deviceList = await this.getJgData(this.roomId, id);
           // 计算模型的外边框
           const box = new THREE.Box3().setFromObject(doorList[0].object.parent.parent);
           // 通过外边框计算模型的中心点
@@ -1009,7 +1029,9 @@ export default {
           // this.camera.position.copy(cameraPosition);
           await this.animateCamera(this.camera.position, this.cameraPosition);
           this.manager.onLoad = () => {
-            this.animateModelEnter(doorList[0].object.parent);
+            this.animateModelEnter(doorList[0].object.parent, 0, (Math.PI / 3) * 2);
+            doorList[0].object.loaded = true;
+            doorList[1].object.loaded = true;
           };
           // 加载模型
           this.ddd.forEach((el) => {
@@ -1150,28 +1172,28 @@ export default {
       });
     },
     //模型动画
-    animateModelEnter(model) {
-      const group = new THREE.Group();
-      group.add(model);
-      this.destroyScene(group);
+    animateModelEnter(model, start, end) {
+      // const group = new THREE.Group();
+      // group.add(model);
+      // this.destroyScene(group);
       // console.log("🚀 ~ animateModelEnter ~ model:", model.rotation.y);
-      // const computedDeg = (Math.PI * 2) / 3 - model.rotation.y;
-      // this.tweenEnter = new TWEEN.Tween({
-      //   rotateY: model.rotation.y,
-      // })
-      //   .to(
-      //     {
-      //       rotateY: computedDeg,
-      //     },
-      //     1000
-      //   )
-      //   .onUpdate(({ rotateY }) => {
-      //     model.rotation.set(0, rotateY, 0);
-      //   })
-      //   .onComplete(() => {
-      //     this.tweenEnter = null;
-      //   })
-      //   .start();
+      // const computedDeg = (Math.PI / 3) * 2;
+      this.tweenEnter = new TWEEN.Tween({
+        rotateY: start,
+      })
+        .to(
+          {
+            rotateY: end,
+          },
+          1000
+        )
+        .onUpdate(({ rotateY }) => {
+          model.rotation.set(0, rotateY, 0);
+        })
+        .onComplete(() => {
+          this.tweenEnter = null;
+        })
+        .start();
     },
     //模型移除动画
     animateModelRemove(model) {
@@ -1255,6 +1277,7 @@ export default {
   beforeDestroy() {
     this.$refs.threeBox.removeEventListener("click", this.onmodelclick);
     window.removeEventListener("resize", this.onWindowResize, false);
+    this.cachesModels.clear();
   },
 };
 </script>
