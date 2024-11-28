@@ -31,6 +31,14 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
+//(注：解决加入composer之后，场景变黑问题)
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+// SMAA抗锯齿通道
+import { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
 import * as TWEEN from "@tweenjs/tween.js";
 // import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 // 导入gui
@@ -733,7 +741,7 @@ export default {
       this.createScene(); // 创建场景
       this.createCamera(); // 创建相机
       this.createLight(); // 创建光源
-      this.loadGLTF("/source/行政服务中心大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
+      this.loadGLTF("/source/拱墅大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
       // this.createBox(); // 加载 GLTF 模型
       // this.gui(); // 创建GUI
       this.createRender(); // 创建渲染器
@@ -741,6 +749,26 @@ export default {
       this.render(); // 渲染
       this.createManager(); // 控制器
       this.onWindowResize(); //让模型自适应窗口
+    },
+    effectComposer(element) {
+      this.composer = new EffectComposer(this.renderer); // 初始化 EffectComposer
+      this.composer.addPass(new RenderPass(this.scene, this.camera)); //渲染通道
+
+      this.outlinePass = new OutlinePass(new THREE.Vector2(element.clientWidth * devicePixelRatio, element.clientHeight * devicePixelRatio), this.scene, this.camera); //轮廓通道
+      this.outlinePass.visibleEdgeColor.set(0xfeb009); //设置轮廓颜色
+      this.outlinePass.lineWidth = 8; //设置轮廓线宽
+      this.outlinePass.edgeGlow = 1; //设置轮廓发光效果
+      // this.outlinePass.hiddenEdgeColor.set(0x0000ff); //设置隐藏轮廓颜色
+      // this.outlinePass.outlineOpacity = 1; //设置轮廓透明度
+      // this.outlinePass.pulsePeriod = 0.5; //设置轮廓闪烁周期
+      // this.outlinePass.usePatternTexture = false; //设置是否使用纹理
+      // this.outlinePass.visibleEdgeThickness = 1; //设置可见轮廓线宽
+      // this.outlinePass.hiddenEdgeThickness = 1; //设置隐藏轮廓线宽
+      const outputPass = new OutputPass(); //输出通道(注：解决加入composer之后，场景变黑问题)
+      const smaaPass = new SMAAPass(element.clientWidth * devicePixelRatio, element.clientHeight * devicePixelRatio); //SMAA通道
+      this.composer.addPass(smaaPass); //添加SMAA通道
+      this.composer.addPass(this.outlinePass); //添加轮廓通道
+      this.composer.addPass(outputPass); //添加输出通道(注：解决加入composer之后，场景变黑问题)
     },
     // 创建GUI
     createGui() {
@@ -779,7 +807,7 @@ export default {
       // pointLight.shadow.camera.top = 10000; // 设置阴影相机上裁剪面
       // pointLight.shadow.camera.bottom = -10000; // 设置阴影相机下裁剪面
       //创建一个虚拟的球形网格 Mesh 的辅助对象来模拟 点光源 PointLight.
-      const pointLightHelper = new THREE.PointLightHelper(pointLight, 10);
+      const pointLightHelper = new THREE.PointLightHelper(pointLight, 111111111110);
       this.scene.add(pointLightHelper);
       this.scene.add(pointLight);
     },
@@ -819,8 +847,10 @@ export default {
       this.renderer.setPixelRatio(window.devicePixelRatio); // 设置设备像素比
       this.renderer.shadowMap.enabled = true; // 启用阴影
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 阴影类型
-      this.renderer.setClearColor(0x2d4057, 1); // 设置渲染器背景颜色
+      this.renderer.setClearColor(0x2d4057, 0); // 设置渲染器背景颜色
+      this.renderer.outputEncoding = THREE.sRGBEncoding; // 设置渲染器输出色彩空间
       element.appendChild(this.renderer.domElement); // 将渲染器添加到页面中
+      this.effectComposer(element);
     },
     // 递归渲染
     render() {
@@ -835,6 +865,7 @@ export default {
       this.tweenEnter && this.tweenEnter.update();
       // 每一帧更新控制器（不然设置控制器属性会是失效）
       this.controls.update(deltaTime);
+      this.composer.render();
       // 递归调用渲染函数
       requestAnimationFrame(this.render);
     },
@@ -884,7 +915,7 @@ export default {
         url,
         (gltf) => {
           // console.log("🚀 ~ loader.load ~ gltf:", gltf);
-          gltf.scene.traverse(function (child) {
+          gltf.scene.traverse((child) => {
             if (child.isMesh) {
               child.frustumCulled = false; // 不裁剪
               child.castShadow = true; // 投影
@@ -893,11 +924,45 @@ export default {
               // child.material.flatShading = true; // 平滑着色
               child.material.emissive = child.material.color; // 物体自发光
               child.material.emissiveMap = child.material.map; // 物体自发光贴图
+              // child.material.emissiveIntensity = 1.5; // 自发光强度
+              // child.material.metalness = 0.5; // 金属度
+              // child.material.roughness = 0.5; // 粗糙度
+              // child.material.normalMap = child.material.map; // 法线贴图
+              // child.material.normalScale.set(1, 1); // 法线贴图缩放
+              // child.material.bumpMap = child.material.map; // 凹凸贴图
+              // child.material.bumpScale = 1; // 凹凸贴图缩放
+              // child.material.alphaMap = child.material.map; // 透明贴图
+              // child.material.opacity = 0.5; // 透明度
+              // child.material.transparent = true; // 开启透明
+              // child.material.side = THREE.DoubleSide; // 双面渲染
+              // child.material.flatShading = true; // 平滑着色
+              // child.material.wireframe = true; // 网格线
+              // child.material.wireframeLinewidth = 2; // 网格线宽度
+              // child.material.wireframeLinecap = "round"; // 网格线端点样式
+              // child.material.wireframeLinejoin = "round"; // 网格线连接样式
+              // child.material.wireframeLinewidth = 2; // 网格线宽度
+              // child.material.wireframeLinecap = "round"; // 网格线端点样式
+              // child.material.wireframeLinejoin = "round"; // 网格线连接样式
+              // child.material.wireframeLinewidth = 2; // 网格线宽度
+              // child.material.wireframeLinecap = "round"; // 网格线端点样式
+              // child.material.wireframeLinejoin = "round"; // 网格线连接样式
+              // child.material.wireframeLinewidth = 2; // 网格线宽度
+              // child.material.wireframeLinecap = "round"; // 网格线端点样式
+              // child.material.wireframeLinejoin = "round"; // 网格线连接样式
+              // child.material.wireframeLinewidth = 2; // 网格线
               child.scale.set(0.999, 0.999, 0.999); // 缩小0.01，防止模型闪烁
               if (child.name.startsWith("door")) {
                 child.mark = true;
                 child.loaded = false;
                 child.rotation.set(0, 0, 0);
+              }
+              if (child.name.startsWith("sxt")) {
+                const cameraPos = child.parent.position;
+                this.loadImage("/source/imgs/camera.png", cameraPos, { x: 0, y: 1880, z: 360 });
+              }
+              if (child.name.startsWith("roomDoor")) {
+                const cameraPos = child.parent.position;
+                this.loadImage("/source/imgs/accessControl.png", cameraPos, { x: -950, y: 2200, z: -1500 });
               }
             }
           });
@@ -955,6 +1020,8 @@ export default {
       const intersects = raycaster.intersectObjects(this.scene.children);
       console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
       if (intersects.length > 0) {
+        this.outlinePass.selectedObjects = [intersects[0].object]; // 设置选中模型高亮
+
         // 计算模型的外边框
         // const box = new THREE.Box3().setFromObject(intersects[0].object);
         // // 创建一个边框，把模型放进去（就是box）
@@ -969,11 +1036,10 @@ export default {
         const lightList = this.filterModel(intersects, "light");
         if (lightList.length > 0) {
           this.destroyScene(this.buildingGroup);
-          this.loadGLTF("/source/行政服务中心.gltf", [0, 345, 0], [1, 1, 1]);
-          return;
+          this.loadGLTF("/source/拱墅中心机房.gltf", [0, 345, 0], [1, 1, 1]);
         }
         // 过滤出设备模型 door3-door
-        const door3List = this.filterModel(intersects, "door3-door");
+        const door3List = this.filterModel(intersects, "roomDoor-4-door");
         door3List.length > 0 && this.openJfRecordList();
         // 过滤出设备模型 device
         const deviceList = this.filterModel(intersects, "device");
@@ -984,7 +1050,6 @@ export default {
           //   deviceList[0].object.parent.parent.name
           // );
           this.createAdvertisement(e);
-          return;
         }
         // 过滤出设备模型 door
         const doorList = this.filterModel(intersects, "door");
@@ -1247,6 +1312,30 @@ export default {
       }
       window.addEventListener("resize", this.onWindowResize, false);
     },
+    // 加载图片加入模型中
+    loadImage(url, pos, obj) {
+      // 加载图片纹理
+      const textureLoader = new THREE.TextureLoader();
+      textureLoader.load(url, (texture) => {
+        texture.encoding = THREE.sRGBEncoding; // 设置纹理色彩空间
+        // 创建平面几何体
+        const geometry = new THREE.PlaneGeometry(450, 600); // 指定平面宽高
+        const material = new THREE.MeshBasicMaterial({
+          map: texture,
+          transparent: true,
+          side: THREE.DoubleSide,
+        });
+        const plane = new THREE.Mesh(geometry, material);
+        plane.position.copy(pos);
+        if (obj) {
+          plane.position.x += obj.x; // 设置平面位置
+          plane.position.y = obj.y; // 设置平面位置
+          plane.position.z += obj.z;
+        }
+        // 将平面添加到场景中
+        this.scene.add(plane);
+      });
+    },
     //过滤模型
     filterModel(intersects, name) {
       if (name === "door") {
@@ -1258,7 +1347,7 @@ export default {
       if (name === "light") {
         return intersects[0].object.name === name ? intersects : [];
       }
-      if (name === "door3-door") {
+      if (name === "roomDoor-4-door") {
         return intersects[0].object.name === name ? intersects : [];
       }
     },
