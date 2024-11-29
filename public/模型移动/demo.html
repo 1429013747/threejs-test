@@ -10,6 +10,18 @@
     .box:has(.ff) .bb {
         color: red;
     }
+
+    .btn:hover~.menu {
+        /* height: calc-size(auto); */
+        /* height: auto; */
+        height: calc-size(auto, size);
+    }
+
+    .menu {
+        height: 0;
+        overflow: hidden;
+        transition: 1s;
+    }
 </style>
 
 <body>
@@ -24,13 +36,19 @@
         <p class="cc">asdf</p>
         <p class="aa">拉开圣诞节分厘卡是</p>
     </div>
-    <input type="text"
-        style="width: 160px;height: 100px;word-wrap: break-word;white-space: pre-wrap;overflow-wrap: break-word;">
-    <input type="text" id="myInput" value="Thisisalongtextthatwillwrapinsidetheinputfield"
-        style="word-wrap: break-word;">
-    <input type="text" id="myInput" value="This is a long text that will wrap inside the input field"
-        style="max-width: 200px; white-space: pre-wrap;">
-
+    <div class="btn">ccccc</div>
+    <div class="menu">
+        <p>asd</p>
+        <p>asd</p>
+        <p>asd</p>
+        <p>asd</p>
+    </div>
+    <div class="menu">
+        <p>asssd</p>
+        <p>asssd</p>
+        <p>assd</p>
+        <p>assd</p>
+    </div>
 </body>
 
 </html>

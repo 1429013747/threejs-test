@@ -40,7 +40,7 @@ import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 // SMAA抗锯齿通道
 import { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
 import * as TWEEN from "@tweenjs/tween.js";
-// import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 // 导入gui
 import dat from "dat.gui"; // 引入 Axios
 import axios from "axios";
@@ -665,10 +665,13 @@ export default {
   mounted() {
     this.$refs.threeBox.addEventListener("click", this.onmodelclick);
     window.addEventListener("keydown", (e) => {
-      if (e.code == "Space" && this.cameraPosition) {
+      if (e.code === "Space" && this.cameraPosition) {
         this.animateCamera(this.cameraPosition, { x: 0, y: 7670, z: 8663 });
         this.camera.lookAt(0, 0, 0); // 设置相机方向
         this.cameraPosition = null;
+      }
+      if (e.code === "Delete") {
+        this.outlinePass.selectedObjects = []; //清除选中模型的效果
       }
     });
     this.clock = new THREE.Clock(); // 创建时钟
@@ -902,14 +905,13 @@ export default {
     },
     // 加载建筑模型
     loadGLTF(url, position, scale) {
-      //  //创建解码器
-      // const dracoLoader = new DRACOLoader();
-      // // 设置 Draco 解码器的路径
-      // dracoLoader.setDecoderPath(
-      //   "https://www.gstatic.com/draco/versioned/decoders/1.5.6/"
-      // );
       // 创建 GLTF 加载器
       const loader = new GLTFLoader();
+      // //创建解码器
+      // const dracoLoader = new DRACOLoader();
+      // // 设置 Draco 解码器的路径
+      // dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/");
+      // loader.setDRACOLoader(dracoLoader);
       //加载模型
       loader.load(
         url,
@@ -1284,6 +1286,7 @@ export default {
         })
         .start();
     },
+
     //创建弹框并设置位置
     createAdvertisement(e) {
       let offsetX = e.offsetX;
