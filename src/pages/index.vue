@@ -1365,6 +1365,44 @@ export default {
         return t === "3U" ? "2U" : t;
       }
     },
+    createWebsocket(model) {
+      const uuid = model.name.split("-")[1];
+      if (this.socket) {
+        this.socket.close(1000, "客户端主动断开");
+      }
+      this.socket = new WebSocket(`wss://gsdyw.gongshu.gov.cn/video/websocket/5?uuid=${uuid}`);
+
+      this.socket.onopen = () => {
+        this.socket.send(uuid);
+        this.startHeartbeat();
+      };
+      this.socket.onmessage = (event) => {
+        if (event.data == "pong") {
+          return;
+        }
+        this.cameraInfo.videoUrl = event.data;
+
+        this.resetHeartbeat();
+      };
+      this.socket.onclose = () => {
+        // 关闭心跳定时器，避免内存泄漏
+        clearTimeout(this.heartbeatTimer);
+      };
+    },
+    // 启动心跳监测的函数
+    startHeartbeat() {
+      this.heartbeatTimer = setTimeout(() => {
+        // 发送心跳包，这里简单地发送一个特定格式的消息，可根据服务端要求调整
+        this.socket.send("ping");
+        // 心跳包发送后，继续下一次的心跳监测计时
+        this.startHeartbeat();
+      }, 30000);
+    },
+    // 重置心跳定时器的函数
+    resetHeartbeat() {
+      clearTimeout(this.heartbeatTimer);
+      this.startHeartbeat();
+    },
   },
   beforeDestroy() {
     this.$refs.threeBox.removeEventListener("click", this.onmodelclick);
