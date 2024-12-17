@@ -117,7 +117,7 @@ export default {
       this.createScene(); // 创建场景
       this.createCamera(); // 创建相机
       this.createLight(); // 创建光源
-      this.loadGLTF("/source/大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
+      this.loadGLTF("/source/拱墅大楼.gltf", [0, 0, -6345], [0.4, 0.4, 0.4]); // 加载 GLTF 模型
       // this.createBox(); // 加载 GLTF 模型
       // this.gui(); // 创建GUI
       this.createRender(); // 创建渲染器
@@ -234,36 +234,32 @@ export default {
       // this.controls.update();
       this.selView();
     },
-    // 键盘控制视角
+    // 键盘控制视角1
     keyboardControl() {
       const time = performance.now(); //eslint-disable-line
       if (this.selControls) {
         if (this.selControls.isLocked) {
-          const delta = (time - this.prevTime) / 1000;
-          this.velocity.x -= this.velocity.x * 100.0 * delta;
-          this.velocity.z -= this.velocity.z * 100.0 * delta;
+          const delta = (time - this.prevTime) / 1000; // 获取两帧之间的时间间隔
+          this.velocity.x -= this.velocity.x * 10.0 * delta; // 控制x移动的速度
+          this.velocity.z -= this.velocity.z * 10.0 * delta; // 控制z移动的速度
           this.velocity.y -= 9.8 * 200.0 * delta; // 控制跳跃的高度
           this.direction.normalize(); // 这确保了各个方向的一致运动
           if (this.moveForward) {
-            this.velocity.z -= this.direction.z + 20100 * delta; // 可控制z移动的速度
+            this.velocity.z -= this.direction.z + 2100 * delta; // 可控制z移动的速度
           }
           if (this.moveBackward) {
-            this.velocity.z += this.direction.z + 20100 * delta; // 可控制z移动的速度
+            this.velocity.z += this.direction.z + 2100 * delta; // 可控制z移动的速度
           }
           if (this.moveRight) {
-            this.velocity.x -= this.direction.x + 20100 * delta; // 可控制x移动的速度
+            this.velocity.x -= this.direction.x + 2100 * delta; // 可控制x移动的速度
           }
           if (this.moveLeft) {
-            this.velocity.x += this.direction.x + 20100 * delta; // 可控制x移动的速度
+            this.velocity.x += this.direction.x + 2100 * delta; // 可控制x移动的速度
           }
 
           this.selControls.moveRight(-this.velocity.x * delta);
           this.selControls.moveForward(-this.velocity.z * delta);
           this.selControls.getObject().position.y += this.velocity.y * delta; // new behavior
-          // console.log(
-          //   "🚀 ~ keyboardControl ~ this.selControls.getObject().position.y:",
-          //   this.selControls.getObject().position.y
-          // );
 
           if (this.selControls.getObject().position.y < 5) {
             this.velocity.y = 0;
@@ -275,9 +271,41 @@ export default {
         this.prevTime = time;
       }
     },
+    // 键盘控制视角2
+    // keyboardControl() {
+    //   const time = performance.now(); //eslint-disable-line
+    //   if (this.selControls) {
+    //     if (this.selControls.isLocked) {
+    //       const delta = (time - this.prevTime) / 1000;
+    //       // this.direction.setFromMatrixColumn(this.selControls.getObject().matrix, 0); // 右方向
+    //       // this.direction.y = 0; // 重置y方向
+
+    //       this.direction.normalize(); // 这确保了各个方向的一致运动
+    //       this.velocity = new THREE.Vector3(0, 0, 0);
+    //       if (this.moveForward) {
+    //         this.velocity.z -= this.direction.z + 2400 * delta;
+    //       }
+    //       if (this.moveBackward) {
+    //         this.velocity.z += this.direction.z + 2400 * delta;
+    //       }
+    //       if (this.moveRight) {
+    //         this.velocity.x -= this.direction.x + 2400 * delta;
+    //       }
+    //       if (this.moveLeft) {
+    //         this.velocity.x += this.direction.x + 2400 * delta;
+    //       }
+    //       this.selControls.moveForward(-this.velocity.z * delta);
+    //       this.selControls.moveRight(-this.velocity.x * delta);
+    //       this.selControls.getObject().position.y = 600;
+    //     }
+    //     this.prevTime = time;
+    //   }
+    // },
     // 锁定第一视角
     selView() {
       this.selControls = new PointerLockControls(this.camera, document.body);
+      console.log(this.selControls.getObject(), "this.selControls.getObject()");
+      console.log(this.selControls, "this.selControls.getObject()");
       this.$refs.blocker.addEventListener(
         "click",
         throttle(() => {
@@ -634,7 +662,7 @@ export default {
         })
         .onComplete(() => {
           this.destroyScene(model);
-          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
+          this.loadGLTF("/source/拱墅中心机房.gltf", [0, 345, 0], [1, 1, 1]);
         })
         .start();
     },
