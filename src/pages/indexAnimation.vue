@@ -226,6 +226,7 @@ export default {
       // // this.controls.enablePan = true; // 开启平移(默认true)
       // // this.controls.autoRotate = true; // 开启自动旋转(默认false)
       // // this.controls.autoRotateSpeed = 2; //设置旋转速度
+      // // this.controls.rotateSpeed = 0.35;
       // // this.controls.enabled = true; // 开启控件(默认true)
       // // this.controls.target.x = 0; // 设置控件焦点x
       // // this.controls.target.y = 0; // 设置控件焦点y

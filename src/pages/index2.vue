@@ -1320,10 +1320,6 @@ export default {
       // 加载图片纹理
       const textureLoader = new THREE.TextureLoader();
       textureLoader.load(url, (texture) => {
-        // const imageLoader = new THREE.ImageLoader();
-        // imageLoader.load(url, (image) => {
-        //   const texture = new THREE.Texture(image);
-        //   texture.needsUpdate = true;
         texture.encoding = THREE.sRGBEncoding; // 设置纹理色彩空间
         // 创建平面几何体
         const geometry = new THREE.PlaneGeometry(450, 600); // 指定平面宽高
