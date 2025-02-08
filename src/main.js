@@ -13,6 +13,10 @@ Vue.config.productionTip = false;
 // echarts.use([TitleComponent, TooltipComponent, GridComponent, BarChart, PieChart, GaugeChart, LegendComponent, DatasetComponent, CanvasRenderer, ToolboxComponent, LineChart, MarkLineComponent]);
 // Vue.prototype.$echarts = echarts;
 
+import ElementUI from "element-ui";
+import "element-ui/lib/theme-chalk/index.css";
+Vue.use(ElementUI);
+
 new Vue({
   render: (h) => h(App),
   router,

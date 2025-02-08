@@ -1,5 +1,8 @@
 <template>
   <div class="container">
+    <button class="view-switch-btn" @click="switchView">
+      {{ viewBool ? "切换第一人称" : "切换第三人称" }}
+    </button>
     <button
       style="z-index: 99; position: absolute"
       @click="
@@ -10,7 +13,7 @@
     >
       index
     </button>
-    <div class="blocker" ref="blocker">
+    <!-- <div class="blocker" ref="blocker">
       <div class="instructions" ref="instructions">
         <p style="font-size: 36px">Click to play</p>
         <p>
@@ -19,7 +22,7 @@
           Look: MOUSE
         </p>
       </div>
-    </div>
+    </div> -->
     <div class="map-house-box">
       <div class="mapHouseContainer" ref="threeBox"></div>
     </div>
@@ -218,9 +221,9 @@ export default {
     // 创建控件对象
     createControls() {
       // 创建控件对象
-      // this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-      // // this.controls.enableDamping = true; // 打开阻尼(默认false)
-      // // this.controls.dampingFactor = 0.25; // 设置阻尼系数
+      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
+      this.controls.enableDamping = true; // 打开阻尼(默认false)
+      this.controls.dampingFactor = 0.25; // 设置阻尼系数
       // // this.controls.enableRotate = true; // 开启旋转(默认true)
       // // this.controls.enableZoom = true; // 开启缩放(默认true)
       // // this.controls.enablePan = true; // 开启平移(默认true)
@@ -232,7 +235,7 @@ export default {
       // // this.controls.target.z = 0; // 设置控件焦点z
       // // this.controls.object.rotation.set(Math.PI / 4, Math.PI / 4, 0);
       // this.controls.update();
-      this.selView();
+      // this.selView();
     },
     // 键盘控制视角1
     keyboardControl() {
@@ -303,24 +306,6 @@ export default {
     // },
     // 锁定第一视角
     selView() {
-      this.selControls = new PointerLockControls(this.camera, document.body);
-      console.log(this.selControls.getObject(), "this.selControls.getObject()");
-      console.log(this.selControls, "this.selControls.getObject()");
-      this.$refs.blocker.addEventListener(
-        "click",
-        throttle(() => {
-          this.selControls.lock(); // 锁定第一视角;
-        }, 1500)
-      );
-
-      this.selControls.addEventListener("lock", () => {
-        if (this.$refs.blocker) this.$refs.blocker.style.display = "none";
-      });
-
-      this.selControls.addEventListener("unlock", () => {
-        if (this.$refs.blocker) this.$refs.blocker.style.display = "block";
-      });
-
       document.addEventListener("keydown", this.onKeyDown, false);
       document.addEventListener("keyup", this.onKeyUp, false);
     },
@@ -351,17 +336,6 @@ export default {
         case 32: // space
           if (this.canJump === true) this.velocity.y += 950;
           this.canJump = false;
-          break;
-
-        case 86: // space
-          if (this.viewBool) {
-            // 切换到第一人称
-            this.camera.position.z = 1; //相机在人前面一点 看不到人模型即可(第一人称)
-          } else {
-            // 切换到第三人称
-            this.camera.position.z = -2.3; //相机在人后面一点（第三人称）
-          }
-          this.viewBool = !this.viewBool;
           break;
       }
     },
@@ -717,6 +691,91 @@ export default {
         return t === "3U" ? "2U" : t;
       }
     },
+    // 修改视角切换方法
+    switchView() {
+      this.viewBool = !this.viewBool;
+      if (!this.viewBool) {
+        // 切换到第一人称
+        // 保存当前相机位置和旋转
+        this.savedCameraPosition = this.camera.position.clone();
+        this.savedCameraRotation = this.camera.rotation.clone();
+
+        // 禁用原有的 OrbitControls
+        if (this.controls) {
+          this.controls.enabled = false;
+        }
+
+        // 初始化第一人称控制器
+        this.selControls = new PointerLockControls(this.camera, document.body);
+
+        // 监听解锁事件
+        this.selControls.addEventListener("unlock", () => {
+          // 切换回第三人称视角
+          this.viewBool = true;
+
+          // 移除第一人称控制
+          this.selControls = null;
+
+          // 移除键盘控制事件
+          document.removeEventListener("keydown", this.onKeyDown, false);
+          document.removeEventListener("keyup", this.onKeyUp, false);
+
+          // 重新启用 OrbitControls
+          if (this.controls) {
+            this.controls.enabled = true;
+
+            // 设置 OrbitControls 的目标点
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(this.camera.quaternion);
+            const targetPosition = this.camera.position.clone().add(direction.multiplyScalar(100));
+            this.controls.target.copy(targetPosition);
+
+            // 更新控制器
+            this.controls.update();
+          }
+        });
+
+        // 锁定视角并启用第一人称控制
+        this.selControls.lock();
+
+        // 添加键盘控制事件
+        document.addEventListener("keydown", this.onKeyDown, false);
+        document.addEventListener("keyup", this.onKeyUp, false);
+
+        // 初始化移动相关的变量
+        this.moveForward = false;
+        this.moveBackward = false;
+        this.moveLeft = false;
+        this.moveRight = false;
+        this.canJump = true;
+        this.prevTime = performance.now();
+        this.velocity = new THREE.Vector3();
+        this.direction = new THREE.Vector3();
+      } else {
+        // 如果当前是第一人称，解锁视角
+        if (this.selControls) {
+          this.selControls.unlock();
+        }
+      }
+    },
+
+    // 组件销毁时的清理
+    beforeDestroy() {
+      // 移除事件监听
+      document.removeEventListener("keydown", this.onKeyDown, false);
+      document.removeEventListener("keyup", this.onKeyUp, false);
+      window.removeEventListener("resize", this.onWindowResize, false);
+
+      // 清理控制器
+      if (this.selControls) {
+        this.selControls.unlock();
+        this.selControls.dispose();
+        this.selControls = null;
+      }
+      if (this.controls) {
+        this.controls.dispose();
+      }
+    },
   },
   beforeDestroy() {
     this.$refs.threeBox.removeEventListener("click", this.onmodelclick, false);
@@ -794,5 +853,31 @@ export default {
     margin: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
   }
+}
+
+/* 添加按钮样式 */
+.view-switch-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.view-switch-btn:hover {
+  background-color: #45a049;
+  transform: scale(1.05);
+}
+
+.view-switch-btn:active {
+  background-color: #3d8b40;
+  transform: scale(0.95);
 }
 </style>

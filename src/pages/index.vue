@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <button class="view-switch-btn" @click="switchView">切换第一人称"</button>
     <button
       style="z-index: 99; position: absolute"
       @click="
@@ -32,6 +33,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
@@ -656,6 +658,9 @@ export default {
       prevTime: performance.now(), // 上一次时间
       velocity: new THREE.Vector3(), // 移动速度
       direction: new THREE.Vector3(), // 移动方向
+      firstPersonPosition: new THREE.Vector3(0, 1700, 0), // 存储第一人称位置
+      firstPersonRotation: new THREE.Euler(), // 存储第一人称旋转
+      isFirstTime: true, // 是否第一次进入第一人称
     };
   },
   activated() {},
@@ -867,10 +872,11 @@ export default {
       this.tweenCamera && this.tweenCamera.update();
       this.tweenEnter && this.tweenEnter.update();
       // 每一帧更新控制器（不然设置控制器属性会是失效）
-      this.controls.update(deltaTime);
+      this.controls.enabled && this.controls.update();
       this.composer.render();
       // 递归调用渲染函数
       requestAnimationFrame(this.render);
+      this.keyboardControl();
     },
     // 创建控件对象
     createControls() {
@@ -883,7 +889,7 @@ export default {
       // this.controls.enablePan = true; // 开启平移(默认true)
       // this.controls.autoRotate = true; // 开启自动旋转(默认false)
       // this.controls.autoRotateSpeed = 2; //设置旋转速度
-      // this.controls.enabled = true; // 开启控件(默认true)
+      this.controls.enabled = true; // 开启控件(默认true)
       // this.controls.target.x = 0; // 设置控件焦点x
       // this.controls.target.y = 0; // 设置控件焦点y
       // this.controls.target.z = 0; // 设置控件焦点z
@@ -939,9 +945,6 @@ export default {
               // child.material.side = THREE.DoubleSide; // 双面渲染
               // child.material.flatShading = true; // 平滑着色
               // child.material.wireframe = true; // 网格线
-              // child.material.wireframeLinewidth = 2; // 网格线宽度
-              // child.material.wireframeLinecap = "round"; // 网格线端点样式
-              // child.material.wireframeLinejoin = "round"; // 网格线连接样式
               // child.material.wireframeLinewidth = 2; // 网格线宽度
               // child.material.wireframeLinecap = "round"; // 网格线端点样式
               // child.material.wireframeLinejoin = "round"; // 网格线连接样式
@@ -1146,7 +1149,7 @@ export default {
           const worldNormal = model[0].face.normal.clone().transformDirection(model[0].object.matrixWorld);
           // 确保朝向正确方向（可根据实际需求调整是否需要乘以 -1）
           // this.worldNormal.multiplyScalar(-1);
-          // 假设模型的 Z 轴方向为“正面”，即 (0, 0, 1)
+          // 假设模型的 Z 轴方向为"正面"，即 (0, 0, 1)
           const modelFrontDirection = new THREE.Vector3(0, 0, 1);
           // 计算旋转轴：使用模型的前向向量和点击面的法向量
           const rotationAxis = new THREE.Vector3().crossVectors(modelFrontDirection, worldNormal).normalize();
@@ -1183,6 +1186,136 @@ export default {
           console.error("模型加载错误：", error);
         }
       );
+    },
+    // 修改视角切换方法
+    switchView() {
+      // 禁用原有的 OrbitControls
+      if (this.controls) {
+        this.controls.enabled = false;
+      }
+
+      // 初始化第一人称控制器
+      this.selControls = new PointerLockControls(this.camera, document.body);
+ 
+      // 锁定视角并启用第一人称控制
+      this.selControls.lock();
+      // 监听解锁事件
+      this.selControls.addEventListener("unlock", () => {
+        // 移除第一人称控制
+        this.selControls = null;
+
+        // 移除键盘控制事件
+        // document.removeEventListener("keydown", this.onKeyDown, false);
+        // document.removeEventListener("keyup", this.onKeyUp, false);
+
+        // 重新启用 OrbitControls
+        if (this.controls) {
+          this.controls.enabled = true;
+
+          // 设置 OrbitControls 的目标点
+          const direction = new THREE.Vector3(0, 0, -1);
+          direction.applyQuaternion(this.camera.quaternion);
+          const targetPosition = this.camera.position.clone().add(direction.multiplyScalar(100));
+          this.controls.target.copy(targetPosition);
+
+          // 更新控制器
+          // this.controls.update();
+        }
+      });
+
+      // 添加键盘控制事件
+      document.addEventListener("keydown", this.onKeyDown, false);
+      document.addEventListener("keyup", this.onKeyUp, false);
+
+    },
+
+    keyboardControl() {
+      const time = performance.now(); //eslint-disable-line
+      if (this.selControls) {
+        if (this.selControls.isLocked) {
+          const delta = (time - this.prevTime) / 1000; // 获取两帧之间的时间间隔
+          this.velocity.x -= this.velocity.x * 10.0 * delta; // 控制x移动的速度
+          this.velocity.z -= this.velocity.z * 10.0 * delta; // 控制z移动的速度
+          this.velocity.y -= 9.8 * 200.0 * delta; // 控制跳跃的高度
+          this.direction.normalize(); // 这确保了各个方向的一致运动
+          if (this.moveForward) {
+            this.velocity.z -= this.direction.z + 2100 * delta; // 可控制z移动的速度
+          }
+          if (this.moveBackward) {
+            this.velocity.z += this.direction.z + 2100 * delta; // 可控制z移动的速度
+          }
+          if (this.moveRight) {
+            this.velocity.x -= this.direction.x + 2100 * delta; // 可控制x移动的速度
+          }
+          if (this.moveLeft) {
+            this.velocity.x += this.direction.x + 2100 * delta; // 可控制x移动的速度
+          }
+
+          this.selControls.moveRight(-this.velocity.x * delta);
+          this.selControls.moveForward(-this.velocity.z * delta);
+          this.selControls.getObject().position.y += this.velocity.y * delta; // new behavior
+
+          if (this.selControls.getObject().position.y < 5) {
+            this.velocity.y = 0;
+            this.selControls.getObject().position.y = 5; // 视角锁定时y轴的高度
+            // this.selControls.position.set(0, 5, 10);
+            this.canJump = true;
+          }
+        }
+        this.prevTime = time;
+      }
+    },
+    onKeyDown(event) {
+      console.log("🚀 ~ onKeyDown ~ event:", event);
+      switch (event.keyCode) {
+        case 38: // up
+        case 87: // w
+          this.moveForward = true;
+          break;
+
+        case 37: // left
+        case 65: // a
+          this.moveLeft = true;
+          break;
+
+        case 40: // down
+        case 83: // s
+          this.moveBackward = true;
+          break;
+
+        case 39: // right
+        case 68: // d
+          this.moveRight = true;
+          break;
+
+        case 32: // space
+          if (this.canJump === true) this.velocity.y += 950;
+          this.canJump = false;
+          break;
+      }
+    },
+    onKeyUp(event) {
+      switch (event.keyCode) {
+        case 38: // up
+        case 87: // w
+          this.moveForward = false;
+          break;
+
+        case 37: // left
+        case 65: // a
+          this.moveLeft = false;
+          break;
+
+        case 40: // down
+        case 83: // s
+          this.moveBackward = false;
+          break;
+
+        case 39: // right
+        case 68: // d
+          this.moveRight = false;
+          break;
+      }
     },
     //移除所有模型(并且释放资源)
     destroyScene(buildingGroup) {
@@ -1408,6 +1541,7 @@ export default {
     this.$refs.threeBox.removeEventListener("click", this.onmodelclick);
     window.removeEventListener("resize", this.onWindowResize, false);
     this.cachesModels.clear();
+    document.removeEventListener("mousemove", this.onMouseMove, false);
   },
 };
 </script>
@@ -1415,6 +1549,32 @@ export default {
 <style scoped>
 .container {
   position: relative;
+
+  /* 添加按钮样式 */
+  .view-switch-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    z-index: 1000;
+    transition: all 0.3s ease;
+  }
+
+  .view-switch-btn:hover {
+    background-color: #45a049;
+    transform: scale(1.05);
+  }
+
+  .view-switch-btn:active {
+    background-color: #3d8b40;
+    transform: scale(0.95);
+  }
   .map-house-box {
     /* width: 18rem;
     height: 11rem;

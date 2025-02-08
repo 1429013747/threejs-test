@@ -24,6 +24,11 @@ const routes = [
     name: "/concat",
     component: () => import("@/pages/concat.vue"),
   },
+  {
+    path: "/model",
+    name: "/model",
+    component: () => import("@/pages/model.vue"),
+  },
 ];
 
 const router = new vueRouter({
