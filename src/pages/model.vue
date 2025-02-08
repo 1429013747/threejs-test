@@ -56,12 +56,12 @@
               </div>
             </div>
             <!-- <div v-show="showInfo.wsdcgq">
-                <div class="title">温湿度感应器</div>
-                <div class="chart-box">
-                  <div class="temperature" ref="tempChart"></div>
-                  <div class="humidity" ref="humidityChart"></div>
-                </div>
-              </div> -->
+              <div class="title">温湿度感应器</div>
+              <div class="chart-box">
+                <div class="temperature" ref="tempChart"></div>
+                <div class="humidity" ref="humidityChart"></div>
+              </div>
+            </div> -->
             <div>
               <div class="title">PUE</div>
               <div ref="devicePue" class="device-PUE"></div>
@@ -89,24 +89,24 @@
             </div>
           </div>
           <!-- <div v-else-if="showInfo.accessControl">
-            <div class="title">门禁信息</div>
-            <div class="table">
-              <el-table :data="tableData">
-                <el-table-column width="75" align="center" prop="people" label="人员"> </el-table-column>
-                <el-table-column width="75" align="center" label="单位">
-                  <template slot-scope="scope">
-                    <span class="rowWidth">{{ scope.row.company }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column width="105" align="center" prop="time" label="时间"> </el-table-column>
-                <el-table-column label="事由">
-                  <template slot-scope="scope">
-                    <span class="rowWidth">{{ scope.row.reason }}</span>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </div>
-          </div> -->
+          <div class="title">门禁信息</div>
+          <div class="table">
+            <el-table :data="tableData">
+              <el-table-column width="75" align="center" prop="people" label="人员"> </el-table-column>
+              <el-table-column width="75" align="center" label="单位">
+                <template slot-scope="scope">
+                  <span class="rowWidth">{{ scope.row.company }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column width="105" align="center" prop="time" label="时间"> </el-table-column>
+              <el-table-column label="事由">
+                <template slot-scope="scope">
+                  <span class="rowWidth">{{ scope.row.reason }}</span>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div> -->
         </div>
       </div>
       <div class="bottomMenu">
@@ -116,22 +116,37 @@
           <el-button @click="change('切换视角')">切换视角</el-button>
           <!-- <i class="el-icon-refresh-right" style="color: #fff; cursor: pointer; font-size: 0.3rem"></i> -->
           <div class="menu" v-show="menuShow">
-            <p @click="showChangeInfo('db')">电表</p>
-            <p @click="showChangeInfo('sdlt')">市电列头柜</p>
-            <p @click="showChangeInfo('kt')">空调</p>
-            <p @click="showChangeInfo('wsdcgq')">温湿度感应器</p>
-            <p @click="showChangeInfo('lscgq')">漏水传感器</p>
-            <p @click="showChangeInfo('UPS')">UPS</p>
-            <p @click="showChangeInfo('primary')">基础信息</p>
+            <div class="menu-box">
+              <div class="menu-content">
+                <p v-if="deviceShows.db" @click="showChangeInfo('db')">电表</p>
+                <p v-if="deviceShows.sdlt" @click="showChangeInfo('sdlt')">市电列头柜</p>
+                <p v-if="deviceShows.kt" @click="showChangeInfo('kt')">空调</p>
+                <p v-if="deviceShows.wsdcgq" @click="showChangeInfo('wsdcgq')">温湿度感应器</p>
+                <p v-if="deviceShows.lscgq" @click="showChangeInfo('lscgq')">漏水传感器</p>
+                <p v-if="deviceShows.UPS" @click="showChangeInfo('UPS')">UPS</p>
+                <p v-if="deviceShows.xdc" @click="showChangeInfo('xdc')">电池</p>
+                <p v-if="deviceShows.pdg" @click="showChangeInfo('pdg')">配电柜</p>
+                <p v-if="deviceShows.dlg" @click="showChangeInfo('dlg')">动力柜</p>
+                <p @click="showChangeInfo('primary')">基础信息</p>
+              </div>
+            </div>
           </div>
           <div class="menu2" v-show="menuShow2">
-            <p @click="showChangeInfo('mj')">门禁</p>
-            <p @click="showChangeInfo('sxt')">摄像头</p>
-            <p @click="showChangeInfo('xfsb')">消防</p>
+            <div class="menu-box">
+              <div class="menu-content">
+                <p @click="showChangeInfo('mj')">门禁</p>
+                <p @click="showChangeInfo('sxt')">摄像头</p>
+                <p @click="showChangeInfo('xfsb')">消防</p>
+              </div>
+            </div>
           </div>
           <div class="menu3" v-show="menuShow3">
-            <p @click="toggleView('global')">全局视角</p>
-            <p @click="toggleView('prosonal')">第一人称视角</p>
+            <div class="menu-box">
+              <div class="menu-content">
+                <p @click="toggleView('global')">全局视角</p>
+                <p @click="toggleView('prosonal')">第一人称视角</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -139,23 +154,23 @@
     <!-- 弹窗start -->
     <div class="info2" ref="infoRef">
       <p>
-        名称: <span>{{ deviceDetail.deviceName ? deviceDetail.deviceName : "无" }}</span>
+        名称: <span>{{ deviceDetail.deviceName ? deviceDetail.deviceName : '无' }}</span>
       </p>
       <p>
-        所属机柜: <span>{{ deviceDetail.cabinetAddress ? deviceDetail.cabinetAddress : "无" }}</span>
+        所属机柜: <span>{{ deviceDetail.cabinetAddress ? deviceDetail.cabinetAddress : '无' }}</span>
       </p>
       <p>
-        IP地址: <span>{{ deviceDetail.deviceIp ? deviceDetail.deviceIp : "无" }}</span>
+        IP地址: <span>{{ deviceDetail.deviceIp ? deviceDetail.deviceIp : '无' }}</span>
       </p>
       <p>
-        设备类型: <span>{{ deviceDetail.assetsType ? deviceDetail.assetsType : "无" }}</span>
+        设备类型: <span>{{ deviceDetail.assetsType ? deviceDetail.assetsType : '无' }}</span>
       </p>
       <p>网络连接: <span>正常</span></p>
       <p>
-        关联应用系统: <span>{{ deviceDetail.appName ? deviceDetail.appName : "无" }}</span>
+        关联应用系统: <span>{{ deviceDetail.appName ? deviceDetail.appName : '无' }}</span>
       </p>
       <p>
-        设备状态: <span>{{ deviceDetail.stockStatus ? deviceDetail.stockStatus : "无" }}</span>
+        设备状态: <span>{{ deviceDetail.stockStatus ? deviceDetail.stockStatus : '无' }}</span>
       </p>
       <p>告警数量: <span>0</span></p>
 
@@ -173,43 +188,35 @@
       <p>剩余: <span>33U</span></p>
     </div>
 
-    <!-- <DialogListJfjcRecord :popType="JfjcRecordInfo" />
-    <DialogListCamera :popType="cameraInfo" /> -->
+    <DialogListJfjcRecord :popType="JfjcRecordInfo" />
+    <DialogListCamera :popType="cameraInfo" />
     <!-- 弹窗end -->
   </div>
 </template>
 <script>
-// import * as echarts from "echarts";
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import * as TWEEN from "@tweenjs/tween.js";
+import * as echarts from 'echarts';
+import * as THREE from 'three';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as TWEEN from '@tweenjs/tween.js';
 
-import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
-import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
-import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
-import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
-import { PointerLockControls } from "three/addons/controls/PointerLockControls.js";
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 
 // SMAA抗锯齿通道
-import { SMAAPass } from "three/addons/postprocessing/SMAAPass.js";
+import { SMAAPass } from 'three/addons/postprocessing/SMAAPass.js';
 
-// import DialogListJfjcRecord from "@/components/DialogList-JfjcRecord";
-// import DialogListCamera from "@/components/DialogList-camera";
+import DialogListJfjcRecord from '@/components/DialogList-JfjcRecord';
+import DialogListCamera from '@/components/DialogList-camera';
 
 export default {
-  //   components: { DialogListJfjcRecord, DialogListCamera },
+  components: { DialogListJfjcRecord, DialogListCamera },
   props: {
     popType: { type: Object },
-    modelInfo: {
-      type: Object,
-      default: () => {
-        return {
-          lou: "拱墅大楼",
-          room: "拱墅中心机房",
-        };
-      },
-    },
+    modelInfo: { type: Object },
   },
   data() {
     return {
@@ -225,6 +232,17 @@ export default {
       gui: null,
       deviceList: [],
       showpage: false,
+      deviceShows: {
+        db: true,
+        sdlt: true,
+        kt: true,
+        wsdcgq: true,
+        lscgq: true,
+        UPS: true,
+        xdc: false,
+        pdg: false,
+        dlg: true,
+      },
       showLeftRight: false,
       cachesModels: new WeakSet(),
       heartbeatTimer: null,
@@ -236,7 +254,7 @@ export default {
       buildingGroup: null,
       deviceDetail: {},
       JfjcRecordInfo: {
-        uuid: "",
+        uuid: '',
         isShow: false,
         isShowEmpty: false,
         JfjcRecordList: [],
@@ -249,16 +267,90 @@ export default {
       },
       cameraInfo: {
         isShow: false,
-        type: "",
-        videoUrl: "",
+        type: '',
+        videoUrl: '',
       },
       data: [
-        { value: 136, name: "服务器" },
-        { value: 35, name: "配电柜" },
-        { value: 33, name: "路由器" },
-        { value: 28, name: "空调" },
+        { value: 136, name: '服务器' },
+        { value: 35, name: '配电柜' },
+        { value: 33, name: '路由器' },
+        { value: 28, name: '空调' },
       ],
-      radio1: "安防",
+      childNameObjects: {
+        sxt: {
+          url: '/source/imgs/camera.png',
+          pos1: { x: 0, y: 2100, z: 360 },
+          pos4: { x: 0, y: 2100, z: 0 },
+          pos5: { x: -360, y: 2100, z: -380 },
+        },
+        mj: {
+          url: '/source/imgs/accessControl.png',
+          pos1: { x: 0, y: 2200, z: 0 },
+          pos4: { x: 0, y: 2200, z: 0 },
+          pos5: { x: 0, y: 2200, z: 0 },
+        },
+        lscgq: {
+          url: '/source/imgs/leakageDevice.png',
+          pos1: { x: 0, y: 700, z: 0 },
+          pos4: { x: 0, y: 700, z: 0 },
+          pos5: { x: 0, y: 700, z: 0 },
+        },
+        sdlt: {
+          url: '/source/imgs/sdlt.png',
+          pos1: { x: 0, y: 1800, z: 0 },
+          pos4: { x: 0, y: 1800, z: 0 },
+          pos5: { x: 0, y: 1800, z: 0 },
+        },
+        wsdcgq: {
+          url: '/source/imgs/temperatureAndHumiditySensor.png',
+          pos1: { x: -700, y: 2000, z: -260 },
+          pos4: { x: -700, y: 2000, z: -260 },
+          pos5: { x: -700, y: 2000, z: -260 },
+        },
+        UPS: {
+          url: '/source/imgs/UPS.png',
+          pos1: { x: -4400, y: 2100, z: 2100 },
+          pos4: { x: -0, y: 2100, z: 0 },
+          pos5: { x: 0, y: 2100, z: -160 },
+        },
+        kt: {
+          url: '/source/imgs/airConditioner.png',
+          pos1: { x: -200, y: 2100, z: 0 },
+          pos4: { x: -200, y: 2100, z: 0 },
+          pos5: { x: -1200, y: 2100, z: -300 },
+        },
+        db: {
+          url: '/source/imgs/wattHourMeter.png',
+          pos1: { x: 0, y: 2100, z: 100 },
+          pos4: { x: 0, y: 2100, z: 100 },
+          pos5: { x: 0, y: 2100, z: 100 },
+        },
+        xfsb: {
+          url: '/source/imgs/fireControl.png',
+          pos1: { x: 3800, y: 1700, z: 2520 },
+          pos4: { x: 0, y: 1700, z: 0 },
+          pos5: { x: 0, y: 1700, z: 0 },
+        },
+        xdc: {
+          url: '/source/imgs/fireControl.png',
+          pos1: { x: 3800, y: 1700, z: 2400 },
+          pos4: { x: 0, y: 1700, z: 0 },
+          pos5: { x: 0, y: 1700, z: 0 },
+        },
+        pdg: {
+          url: '/source/imgs/fireControl.png',
+          pos1: { x: 3800, y: 1700, z: 2400 },
+          pos4: { x: 3800, y: 1700, z: 2400 },
+          pos5: { x: -3660, y: 1700, z: 0 },
+        },
+        dlg: {
+          url: '/source/imgs/fireControl.png',
+          pos1: { x: 3800, y: 1700, z: 2400 },
+          pos4: { x: 3800, y: 1700, z: 2400 },
+          pos5: { x: 3800, y: 1700, z: 2400 },
+        },
+      },
+      radio1: '安防',
       selControls: null, //选中的控件
       moveForward: null, // 前进
       moveBackward: null, // 后退
@@ -267,7 +359,8 @@ export default {
       prevTime: performance.now(), // 上一次时间
       velocity: new THREE.Vector3(), // 移动速度
       direction: new THREE.Vector3(), // 移动方向
-      flat: true, // 是否第一人称
+      flat: true,
+      isLoaded: true,
       menuShow: false,
       menuShow2: false,
       menuShow3: false,
@@ -278,46 +371,46 @@ export default {
       },
       tableData: [
         {
-          people: "张塞非",
-          company: "森机房",
-          time: "10/26 12:00",
-          reason: "硬件故障",
+          people: '张塞非',
+          company: '森机房',
+          time: '10/26 12:00',
+          reason: '硬件故障',
         },
         {
-          people: "xx",
-          company: "森机房",
-          time: "10/26 12:00",
-          reason: "硬件故障",
+          people: 'xx',
+          company: '森机房',
+          time: '10/26 12:00',
+          reason: '硬件故障',
         },
         {
-          people: "xx",
-          company: "森机房",
-          time: "10/26 12:00",
-          reason: "硬件故障",
+          people: 'xx',
+          company: '森机房',
+          time: '10/26 12:00',
+          reason: '硬件故障',
         },
         {
-          people: "xx",
-          company: "森机房",
-          time: "10/26 12:00",
-          reason: "硬件故障",
+          people: 'xx',
+          company: '森机房',
+          time: '10/26 12:00',
+          reason: '硬件故障',
         },
         {
-          people: "xx",
-          company: "森机房cvss",
-          time: "10/26 12:00",
-          reason: "硬件故障",
+          people: 'xx',
+          company: '森机房cvss',
+          time: '10/26 12:00',
+          reason: '硬件故障',
         },
         {
-          people: "xx",
-          company: "森机房",
-          time: "10/26 12:00",
-          reason: "硬件故障",
+          people: 'xx',
+          company: '森机房',
+          time: '10/26 12:00',
+          reason: '硬件故障',
         },
         {
-          people: "xx",
-          company: "森机房",
-          time: "10/26 12:00",
-          reason: "硬件故障",
+          people: 'xx',
+          company: '森机房',
+          time: '10/26 12:00',
+          reason: '硬件故障',
         },
       ],
     };
@@ -327,19 +420,26 @@ export default {
   watch: {
     modelInfo: {
       handler(newVal) {
-        while (this.deviceGroup.length > 0) {
-          this.destroyScene(this.deviceGroup.shift());
+        if (this.isLoaded) {
+          while (this.deviceGroup.length > 0) {
+            this.destroyScene(this.deviceGroup.shift());
+          }
+          this.destroyScene(this.buildingGroup);
+
+          this.loadGLTF(`/source/${newVal.lou}.gltf`, [0, 0, -6345], [0.4, 0.4, 0.4]);
+          this.showpage = false;
+          this.menuShow = false;
+          this.menuShow2 = false;
+          this.menuShow3 = false;
+          this.menuDisplay();
         }
-        this.destroyScene(this.buildingGroup);
-        this.loadGLTF(`/source/${newVal.lou}.gltf`, [0, 0, -6345], [0.4, 0.4, 0.4]);
       },
       deep: true,
     },
   },
   created() {},
   mounted() {
-    const element = this.$refs.threeBox;
-    element.addEventListener("dblclick", this.onmodelclick);
+    this.$refs.threeBox.addEventListener('dblclick', this.onmodelclick);
     // window.addEventListener('keydown', (e) => {
     //   e.preventDefault();
     //   if (e.code == 'Space') {
@@ -358,21 +458,83 @@ export default {
     // });
     this.clock = new THREE.Clock();
     this.init();
-    // this.chartUp();
+    this.chartUp();
   },
   methods: {
+    menuDisplay() {
+      const arr = ['拱墅中心机房', '文晖机房', '城运机房', '人防机房', '行政服务中心'];
+      if (this.modelInfo.room == arr[0]) {
+        this.deviceShows.db = true;
+        this.deviceShows.sdlt = true;
+        this.deviceShows.kt = true;
+        this.deviceShows.wsdcgq = true;
+        this.deviceShows.lscgq = true;
+        this.deviceShows.UPS = true;
+        this.deviceShows.xdc = false;
+        this.deviceShows.pdg = false;
+        this.deviceShows.dlg = false;
+      } else if (this.modelInfo.room == arr[1]) {
+        this.deviceShows.db = false;
+        this.deviceShows.sdlt = true;
+        this.deviceShows.kt = true;
+        this.deviceShows.wsdcgq = true;
+        this.deviceShows.lscgq = true;
+        this.deviceShows.UPS = true;
+        this.deviceShows.xdc = true;
+        this.deviceShows.pdg = false;
+        this.deviceShows.dlg = false;
+      } else if (this.modelInfo.room == arr[2]) {
+        this.deviceShows.db = false;
+        this.deviceShows.sdlt = false;
+        this.deviceShows.kt = true;
+        this.deviceShows.wsdcgq = true;
+        this.deviceShows.lscgq = true;
+        this.deviceShows.UPS = false;
+        this.deviceShows.xdc = false;
+        this.deviceShows.pdg = true;
+        this.deviceShows.dlg = false;
+      } else if (this.modelInfo.room == arr[3]) {
+        this.deviceShows.db = false;
+        this.deviceShows.sdlt = false;
+        this.deviceShows.kt = false;
+        this.deviceShows.wsdcgq = true;
+        this.deviceShows.lscgq = false;
+        this.deviceShows.UPS = true;
+        this.deviceShows.xdc = true;
+        this.deviceShows.pdg = false;
+        this.deviceShows.dlg = true;
+      } else if (this.modelInfo.room == arr[4]) {
+        this.deviceShows.db = false;
+        this.deviceShows.sdlt = false;
+        this.deviceShows.kt = true;
+        this.deviceShows.wsdcgq = true;
+        this.deviceShows.lscgq = true;
+        this.deviceShows.UPS = true;
+        this.deviceShows.xdc = true;
+        this.deviceShows.pdg = true;
+        this.deviceShows.dlg = false;
+      }
+    },
     clearShowModel() {
       Object.keys(this.deciceObject).forEach((key) => {
         this.deciceObject[key].forEach((el) => {
-          el.clicked = false;
-          el.visible = false;
+          this.scene.remove(el);
+          el.traverse((object) => {
+            if (object instanceof THREE.Mesh) {
+              object.geometry.dispose();
+              if (object.material && object.material.map) {
+                object.material.map.dispose();
+              }
+              object.material.dispose();
+            }
+          });
         });
       });
     },
     async toggleView(str) {
       this.menuShow3 = false;
       this.center = null;
-      if (str === "global") {
+      if (str === 'global') {
         this.animateCamera(this.camera.position, { x: 0, y: 7670, z: 8663 });
         this.flat = true;
         this.controls.enabled = true;
@@ -416,26 +578,26 @@ export default {
     selView() {
       this.selControls = new PointerLockControls(this.camera, this.$refs.threeBox);
       this.selControls.pointerSpeed = 0.7;
-      this.selControls.addEventListener("unlock", () => {
-        document.removeEventListener("keydown", this.onKeyDown, false);
-        document.removeEventListener("keyup", this.onKeyUp, false);
-        this.center = null;
-        this.controls.enabled = true;
-
-        const direction = new THREE.Vector3(0, 0, -1);
-        direction.applyQuaternion(this.camera.quaternion);
-        const targetPosition = this.camera.position.clone().add(direction.multiplyScalar(1));
-        this.controls.target.copy(targetPosition);
-
-        this.selControls && this.selControls.dispose();
-        this.selControls = null;
-      });
-
-      document.addEventListener("keydown", this.onKeyDown, false);
-      document.addEventListener("keyup", this.onKeyUp, false);
+      this.selControls.addEventListener('unlock', this.unlockSelControls);
+      document.addEventListener('keydown', this.onKeyDown, false);
+      document.addEventListener('keyup', this.onKeyUp, false);
       this.selControls.lock();
     },
 
+    unlockSelControls() {
+      document.removeEventListener('keydown', this.onKeyDown, false);
+      document.removeEventListener('keyup', this.onKeyUp, false);
+      this.center = null;
+      this.controls.enabled = true;
+      this.camera.updateMatrixWorld();
+      const direction = new THREE.Vector3(0, 0, -1);
+      direction.applyQuaternion(this.camera.quaternion);
+      const targetPosition = this.camera.position.clone().add(direction.multiplyScalar(1));
+      this.controls.target.copy(targetPosition);
+
+      this.selControls && this.selControls.dispose();
+      this.selControls = null;
+    },
     onKeyDown(event) {
       switch (event.keyCode) {
         case 38: // up
@@ -503,7 +665,7 @@ export default {
           el.visible = false;
         });
       });
-      if (type === "primary") {
+      if (type === 'primary') {
         this.showInfo.totalInfo = true;
         this.showLeftRight = !this.showLeftRight;
         this.$nextTick(() => {
@@ -521,495 +683,495 @@ export default {
       this.menuShow3 = false;
       this.menuShow2 = false;
       this.menuShow = false;
-      if (val == "动环") {
+      if (val == '动环') {
         this.menuShow = true;
       }
-      if (val == "安防") {
+      if (val == '安防') {
         this.menuShow2 = true;
       }
-      if (val == "切换视角") {
+      if (val == '切换视角') {
         this.menuShow3 = true;
       }
     },
-    // chartUp() {
-    //   this.deviceChart();
-    //   this.deviceStatusChart();
-    //   this.energyEfficiency();
-    //   this.devicePue();
-    //   // this.tempChart();
-    //   // this.humidityChart();
-    // },
-    // deviceChart() {
-    //   const myChart = this.$echarts.init(this.$refs.deviceChart);
-    //   const option = {
-    //     title: {
-    //       show: true,
-    //       text: "232",
-    //       subtext: "IT设备总数",
-    //       left: "34%",
-    //       top: "36%",
-    //       textAlign: "center",
-    //       textStyle: {
-    //         color: "#fff",
-    //         fontSize: "0.2rem",
-    //       },
-    //       subtextStyle: {
-    //         color: "#ccc",
-    //         fontSize: "0.13rem",
-    //       },
-    //     },
-    //     legend: {
-    //       right: "right",
-    //       top: "20%",
-    //       orient: "vertical",
-    //       icon: "circle",
-    //       itemHeight: 5,
-    //       itemWidth: 5,
-    //       textStyle: {
-    //         //图例字体大小
-    //         fontSize: ".1rem",
-    //         color: "#B8DDFF",
-    //         lineHeight: 15,
-    //       },
-    //       formatter: (name) => {
-    //         let target;
-    //         for (let i = 0; i < this.data.length; i++) {
-    //           if (this.data[i].name == name) {
-    //             target = this.data[i].value;
-    //           }
-    //         }
-    //         return `${name}   ${target} `;
-    //       },
-    //     },
-    //     color: ["#fdb876", "#feda70", "#46b29f", "#51a1dc"],
-    //     series: [
-    //       {
-    //         type: "pie",
-    //         radius: ["40%", "60%"],
-    //         avoidLabelOverlap: false,
-    //         itemStyle: {
-    //           borderRadius: 6,
-    //           // borderColor: '#fff',
-    //           // borderWidth: 2,
-    //         },
-    //         left: "-30%",
-    //         hoverAnimation: false,
-    //         label: {
-    //           show: false,
-    //           position: "center",
-    //         },
-    //         // emphasis: {
-    //         //   label: {
-    //         //     show: true,
-    //         //     fontSize: 40,
-    //         //     fontWeight: 'bold',
-    //         //   },
-    //         // },
-    //         labelLine: {
-    //           show: false,
-    //         },
-    //         data: this.data,
-    //       },
-    //     ],
-    //   };
+    chartUp() {
+      this.deviceChart();
+      this.deviceStatusChart();
+      this.energyEfficiency();
+      this.devicePue();
+      // this.tempChart();
+      // this.humidityChart();
+    },
+    deviceChart() {
+      const myChart = this.$echarts.init(this.$refs.deviceChart);
+      const option = {
+        title: {
+          show: true,
+          text: '232',
+          subtext: 'IT设备总数',
+          left: '34%',
+          top: '36%',
+          textAlign: 'center',
+          textStyle: {
+            color: '#fff',
+            fontSize: '0.2rem',
+          },
+          subtextStyle: {
+            color: '#ccc',
+            fontSize: '0.13rem',
+          },
+        },
+        legend: {
+          right: 'right',
+          top: '20%',
+          orient: 'vertical',
+          icon: 'circle',
+          itemHeight: 5,
+          itemWidth: 5,
+          textStyle: {
+            //图例字体大小
+            fontSize: '.1rem',
+            color: '#B8DDFF',
+            lineHeight: 15,
+          },
+          formatter: (name) => {
+            let target;
+            for (let i = 0; i < this.data.length; i++) {
+              if (this.data[i].name == name) {
+                target = this.data[i].value;
+              }
+            }
+            return `${name}   ${target} `;
+          },
+        },
+        color: ['#fdb876', '#feda70', '#46b29f', '#51a1dc'],
+        series: [
+          {
+            type: 'pie',
+            radius: ['40%', '60%'],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 6,
+              // borderColor: '#fff',
+              // borderWidth: 2,
+            },
+            left: '-30%',
+            hoverAnimation: false,
+            label: {
+              show: false,
+              position: 'center',
+            },
+            // emphasis: {
+            //   label: {
+            //     show: true,
+            //     fontSize: 40,
+            //     fontWeight: 'bold',
+            //   },
+            // },
+            labelLine: {
+              show: false,
+            },
+            data: this.data,
+          },
+        ],
+      };
 
-    //   option && myChart.setOption(option);
-    //   window.addEventListener("resize", () => {
-    //     myChart.resize();
-    //   });
-    // },
-    // deviceStatusChart() {
-    //   const myChart = this.$echarts.init(this.$refs.deviceStatusChart);
-    //   const option = {
-    //     legend: {
-    //       top: "5%",
-    //       right: "0",
-    //       orient: "horizontal",
-    //       icon: "circle",
-    //       itemHeight: 8,
-    //       itemWidth: 8,
-    //       textStyle: {
-    //         //图例字体大小
-    //         fontSize: ".1rem",
-    //         color: "#B8DDFF",
-    //         lineHeight: 15,
-    //       },
-    //     },
-    //     grid: {
-    //       left: "3%",
-    //       right: "4%",
-    //       bottom: "13%",
-    //       containLabel: true,
-    //     },
-    //     color: ["#d59e72", "#5fbcae"],
-    //     xAxis: {
-    //       type: "value",
-    //       axisLabel: {
-    //         color: "#fff",
-    //       },
-    //       axisLine: {
-    //         show: true,
-    //       },
-    //       splitLine: {
-    //         show: true,
-    //         lineStyle: {
-    //           color: "gray",
-    //         },
-    //       },
-    //     },
-    //     yAxis: {
-    //       type: "category",
-    //       data: ["烟感", "摄像头", "空调", "UPS", "照明"],
-    //       axisTick: {
-    //         show: false,
-    //       },
-    //       axisLabel: {
-    //         color: "#fff",
-    //       },
-    //     },
-    //     series: [
-    //       {
-    //         name: "正常",
-    //         type: "bar",
-    //         stack: "total",
-    //         barWidth: "20%",
-    //         // label: {
-    //         //   show: true,
-    //         // },
-    //         // emphasis: {
-    //         //   focus: 'series',
-    //         // },
-    //         data: [22, 12, 11, 34, 30],
-    //       },
-    //       {
-    //         name: "异常",
-    //         type: "bar",
-    //         stack: "total",
-    //         barWidth: "20%",
+      option && myChart.setOption(option);
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+    },
+    deviceStatusChart() {
+      const myChart = this.$echarts.init(this.$refs.deviceStatusChart);
+      const option = {
+        legend: {
+          top: '5%',
+          right: '0',
+          orient: 'horizontal',
+          icon: 'circle',
+          itemHeight: 8,
+          itemWidth: 8,
+          textStyle: {
+            //图例字体大小
+            fontSize: '.1rem',
+            color: '#B8DDFF',
+            lineHeight: 15,
+          },
+        },
+        grid: {
+          left: '3%',
+          right: '4%',
+          bottom: '13%',
+          containLabel: true,
+        },
+        color: ['#d59e72', '#5fbcae'],
+        xAxis: {
+          type: 'value',
+          axisLabel: {
+            color: '#fff',
+          },
+          axisLine: {
+            show: true,
+          },
+          splitLine: {
+            show: true,
+            lineStyle: {
+              color: 'gray',
+            },
+          },
+        },
+        yAxis: {
+          type: 'category',
+          data: ['烟感', '摄像头', '空调', 'UPS', '照明'],
+          axisTick: {
+            show: false,
+          },
+          axisLabel: {
+            color: '#fff',
+          },
+        },
+        series: [
+          {
+            name: '正常',
+            type: 'bar',
+            stack: 'total',
+            barWidth: '20%',
+            // label: {
+            //   show: true,
+            // },
+            // emphasis: {
+            //   focus: 'series',
+            // },
+            data: [22, 12, 11, 34, 30],
+          },
+          {
+            name: '异常',
+            type: 'bar',
+            stack: 'total',
+            barWidth: '20%',
 
-    //         // label: {
-    //         //   show: true,
-    //         // },
-    //         // emphasis: {
-    //         //   focus: 'series',
-    //         // },
-    //         data: [12, 13, 10, 13, 20],
-    //       },
-    //     ],
-    //   };
+            // label: {
+            //   show: true,
+            // },
+            // emphasis: {
+            //   focus: 'series',
+            // },
+            data: [12, 13, 10, 13, 20],
+          },
+        ],
+      };
 
-    //   option && myChart.setOption(option);
-    //   window.addEventListener("resize", () => {
-    //     myChart.resize();
-    //   });
-    // },
-    // energyEfficiency() {
-    //   const dom = this.$refs.energyEfficiency;
-    //   const myChart = echarts.init(dom);
-    //   const option = {
-    //     title: {
-    //       show: true,
-    //       text: "1.63",
-    //       subtext: "小时 PUE",
-    //       left: "29%",
-    //       top: "36%",
-    //       textAlign: "center",
-    //       textStyle: {
-    //         color: "#fff",
-    //         fontSize: "0.2rem",
-    //       },
-    //       subtextStyle: {
-    //         color: "#ccc",
-    //         fontSize: "0.13rem",
-    //       },
-    //     },
-    //     color: ["#5aa99c"],
-    //     series: [
-    //       {
-    //         name: "Indicator",
-    //         type: "gauge",
-    //         radius: "70%",
-    //         center: ["30%", "50%"],
-    //         detail: {
-    //           show: false,
-    //         },
-    //         data: [65],
-    //         axisTick: {
-    //           show: false,
-    //         },
-    //         axisLabel: {
-    //           show: false,
-    //         },
-    //         splitLine: {
-    //           show: false,
-    //         },
-    //         axisLine: {
-    //           show: true,
-    //           roundCap: true,
-    //         },
-    //         progress: {
-    //           show: true,
-    //           roundCap: true,
-    //         },
-    //         pointer: {
-    //           show: false,
-    //         },
-    //       },
-    //     ],
-    //   };
+      option && myChart.setOption(option);
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+    },
+    energyEfficiency() {
+      const dom = this.$refs.energyEfficiency;
+      const myChart = echarts.init(dom);
+      const option = {
+        title: {
+          show: true,
+          text: '1.63',
+          subtext: '小时 PUE',
+          left: '29%',
+          top: '36%',
+          textAlign: 'center',
+          textStyle: {
+            color: '#fff',
+            fontSize: '0.2rem',
+          },
+          subtextStyle: {
+            color: '#ccc',
+            fontSize: '0.13rem',
+          },
+        },
+        color: ['#5aa99c'],
+        series: [
+          {
+            name: 'Indicator',
+            type: 'gauge',
+            radius: '70%',
+            center: ['30%', '50%'],
+            detail: {
+              show: false,
+            },
+            data: [65],
+            axisTick: {
+              show: false,
+            },
+            axisLabel: {
+              show: false,
+            },
+            splitLine: {
+              show: false,
+            },
+            axisLine: {
+              show: true,
+              roundCap: true,
+            },
+            progress: {
+              show: true,
+              roundCap: true,
+            },
+            pointer: {
+              show: false,
+            },
+          },
+        ],
+      };
 
-    //   option && myChart.setOption(option);
-    //   window.addEventListener("resize", () => {
-    //     myChart.resize();
-    //   });
-    // },
-    // devicePue() {
-    //   const myChart = this.$echarts.init(this.$refs.devicePue);
-    //   const option = {
-    //     grid: {
-    //       top: "6%",
-    //       left: "3%",
-    //       right: "6%",
-    //       bottom: "3%",
-    //       containLabel: true,
-    //     },
-    //     color: ["#c1895b"],
-    //     xAxis: {
-    //       type: "category",
-    //       data: ["4:00", "7:00", "10:00", "13:00", "16:00", "19:00", "22:00"],
-    //       axisTick: {
-    //         show: false,
-    //       },
-    //       boundaryGap: false, // 不留白，从原点开始
-    //       axisLabel: {
-    //         color: "#fff",
-    //       },
-    //     },
-    //     yAxis: {
-    //       type: "value",
-    //       splitLine: {
-    //         lineStyle: {
-    //           type: "dashed",
-    //           color: "#fff",
-    //           opacity: 0.3,
-    //         },
-    //       },
-    //       axisLabel: {
-    //         color: "#fff",
-    //       },
-    //       axisLine: {
-    //         show: true,
-    //       },
-    //     },
-    //     series: [
-    //       {
-    //         name: "步数",
-    //         data: [1, 1.2, 2, 1.4, 1.5, 1.2, 1.5],
-    //         type: "line",
-    //         smooth: true,
-    //         areaStyle: {
-    //           opacity: 0.5,
-    //           color: new this.$echarts.graphic.LinearGradient(0, 0, 0, 1, [
-    //             {
-    //               offset: 0,
-    //               color: "#c1895b",
-    //             },
-    //             {
-    //               offset: 1,
-    //               color: "transparent",
-    //             },
-    //           ]),
-    //         },
-    //       },
-    //     ],
-    //   };
+      option && myChart.setOption(option);
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+    },
+    devicePue() {
+      const myChart = this.$echarts.init(this.$refs.devicePue);
+      const option = {
+        grid: {
+          top: '6%',
+          left: '3%',
+          right: '6%',
+          bottom: '3%',
+          containLabel: true,
+        },
+        color: ['#c1895b'],
+        xAxis: {
+          type: 'category',
+          data: ['4:00', '7:00', '10:00', '13:00', '16:00', '19:00', '22:00'],
+          axisTick: {
+            show: false,
+          },
+          boundaryGap: false, // 不留白，从原点开始
+          axisLabel: {
+            color: '#fff',
+          },
+        },
+        yAxis: {
+          type: 'value',
+          splitLine: {
+            lineStyle: {
+              type: 'dashed',
+              color: '#fff',
+              opacity: 0.3,
+            },
+          },
+          axisLabel: {
+            color: '#fff',
+          },
+          axisLine: {
+            show: true,
+          },
+        },
+        series: [
+          {
+            name: '步数',
+            data: [1, 1.2, 2, 1.4, 1.5, 1.2, 1.5],
+            type: 'line',
+            smooth: true,
+            areaStyle: {
+              opacity: 0.5,
+              color: new this.$echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                {
+                  offset: 0,
+                  color: '#c1895b',
+                },
+                {
+                  offset: 1,
+                  color: 'transparent',
+                },
+              ]),
+            },
+          },
+        ],
+      };
 
-    //   option && myChart.setOption(option);
-    //   window.addEventListener("resize", () => {
-    //     myChart.resize();
-    //   });
-    // },
-    // tempChart() {
-    //   const dom = this.$refs.tempChart;
-    //   const myChart = echarts.init(dom);
-    //   const option = {
-    //     title: {
-    //       text: "温度",
-    //       left: "center",
-    //       top: "2%",
-    //       textStyle: {
-    //         color: "#fff",
-    //         fontSize: "0.15rem",
-    //       },
-    //     },
-    //     series: [
-    //       {
-    //         type: "gauge",
-    //         center: ["50%", "65%"],
-    //         radius: "65%",
-    //         startAngle: 200,
-    //         endAngle: -20,
-    //         min: 0,
-    //         max: 120,
-    //         splitNumber: 12,
-    //         itemStyle: {
-    //           color: "#FFAB91",
-    //         },
-    //         progress: {
-    //           show: true,
-    //           width: 8,
-    //         },
-    //         pointer: {
-    //           show: false,
-    //         },
-    //         axisLine: {
-    //           lineStyle: {
-    //             width: 8,
-    //           },
-    //         },
-    //         axisTick: {
-    //           distance: 0,
-    //           splitNumber: 2,
-    //           lineStyle: {
-    //             width: 1,
-    //             color: "#999",
-    //           },
-    //         },
-    //         splitLine: {
-    //           distance: -16,
-    //           length: 8,
-    //           lineStyle: {
-    //             width: 1,
-    //             color: "#999",
-    //           },
-    //         },
-    //         axisLabel: {
-    //           distance: -20,
-    //           color: "#999",
-    //           fontSize: "0.08rem",
-    //         },
-    //         anchor: {
-    //           show: false,
-    //         },
-    //         title: {
-    //           show: false,
-    //         },
-    //         detail: {
-    //           valueAnimation: true,
-    //           width: "60%",
-    //           lineHeight: 40,
-    //           borderRadius: 8,
-    //           offsetCenter: [0, "-10%"],
-    //           fontSize: "0.15rem",
-    //           fontWeight: "bolder",
-    //           formatter: "{value} °C",
-    //           color: "inherit",
-    //         },
-    //         data: [
-    //           {
-    //             value: 20,
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   };
+      option && myChart.setOption(option);
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+    },
+    tempChart() {
+      const dom = this.$refs.tempChart;
+      const myChart = echarts.init(dom);
+      const option = {
+        title: {
+          text: '温度',
+          left: 'center',
+          top: '2%',
+          textStyle: {
+            color: '#fff',
+            fontSize: '0.15rem',
+          },
+        },
+        series: [
+          {
+            type: 'gauge',
+            center: ['50%', '65%'],
+            radius: '65%',
+            startAngle: 200,
+            endAngle: -20,
+            min: 0,
+            max: 120,
+            splitNumber: 12,
+            itemStyle: {
+              color: '#FFAB91',
+            },
+            progress: {
+              show: true,
+              width: 8,
+            },
+            pointer: {
+              show: false,
+            },
+            axisLine: {
+              lineStyle: {
+                width: 8,
+              },
+            },
+            axisTick: {
+              distance: 0,
+              splitNumber: 2,
+              lineStyle: {
+                width: 1,
+                color: '#999',
+              },
+            },
+            splitLine: {
+              distance: -16,
+              length: 8,
+              lineStyle: {
+                width: 1,
+                color: '#999',
+              },
+            },
+            axisLabel: {
+              distance: -20,
+              color: '#999',
+              fontSize: '0.08rem',
+            },
+            anchor: {
+              show: false,
+            },
+            title: {
+              show: false,
+            },
+            detail: {
+              valueAnimation: true,
+              width: '60%',
+              lineHeight: 40,
+              borderRadius: 8,
+              offsetCenter: [0, '-10%'],
+              fontSize: '0.15rem',
+              fontWeight: 'bolder',
+              formatter: '{value} °C',
+              color: 'inherit',
+            },
+            data: [
+              {
+                value: 20,
+              },
+            ],
+          },
+        ],
+      };
 
-    //   option && myChart.setOption(option);
-    //   window.addEventListener("resize", () => {
-    //     myChart.resize();
-    //   });
-    // },
-    // // 湿度图表
-    // humidityChart() {
-    //   const dom = this.$refs.humidityChart;
-    //   const myChart = echarts.init(dom);
-    //   const option = {
-    //     title: {
-    //       text: "湿度",
-    //       left: "center",
-    //       top: "2%",
-    //       textStyle: {
-    //         color: "#fff",
-    //         fontSize: "0.15rem",
-    //       },
-    //     },
-    //     series: [
-    //       {
-    //         type: "gauge",
-    //         center: ["50%", "65%"],
-    //         radius: "65%",
-    //         startAngle: 200,
-    //         endAngle: -20,
-    //         min: 0,
-    //         max: 120,
-    //         splitNumber: 12,
-    //         itemStyle: {
-    //           color: "#09d0c8",
-    //         },
-    //         progress: {
-    //           show: true,
-    //           width: 8,
-    //         },
-    //         pointer: {
-    //           show: false,
-    //         },
-    //         axisLine: {
-    //           lineStyle: {
-    //             width: 8,
-    //           },
-    //         },
-    //         axisTick: {
-    //           distance: 0,
-    //           splitNumber: 2,
-    //           lineStyle: {
-    //             width: 1,
-    //             color: "#999",
-    //           },
-    //         },
-    //         splitLine: {
-    //           distance: -16,
-    //           length: 8,
-    //           lineStyle: {
-    //             width: 1,
-    //             color: "#999",
-    //           },
-    //         },
-    //         axisLabel: {
-    //           distance: -20,
-    //           color: "#999",
-    //           fontSize: "0.08rem",
-    //         },
-    //         anchor: {
-    //           show: false,
-    //         },
-    //         title: {
-    //           show: false,
-    //         },
-    //         detail: {
-    //           valueAnimation: true,
-    //           width: "60%",
-    //           lineHeight: 40,
-    //           borderRadius: 8,
-    //           offsetCenter: [0, "-10%"],
-    //           fontSize: "0.15rem",
-    //           fontWeight: "bolder",
-    //           formatter: "{value} %",
-    //           color: "inherit",
-    //         },
-    //         data: [
-    //           {
-    //             value: 60,
-    //           },
-    //         ],
-    //       },
-    //     ],
-    //   };
+      option && myChart.setOption(option);
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+    },
+    // 湿度图表
+    humidityChart() {
+      const dom = this.$refs.humidityChart;
+      const myChart = echarts.init(dom);
+      const option = {
+        title: {
+          text: '湿度',
+          left: 'center',
+          top: '2%',
+          textStyle: {
+            color: '#fff',
+            fontSize: '0.15rem',
+          },
+        },
+        series: [
+          {
+            type: 'gauge',
+            center: ['50%', '65%'],
+            radius: '65%',
+            startAngle: 200,
+            endAngle: -20,
+            min: 0,
+            max: 120,
+            splitNumber: 12,
+            itemStyle: {
+              color: '#09d0c8',
+            },
+            progress: {
+              show: true,
+              width: 8,
+            },
+            pointer: {
+              show: false,
+            },
+            axisLine: {
+              lineStyle: {
+                width: 8,
+              },
+            },
+            axisTick: {
+              distance: 0,
+              splitNumber: 2,
+              lineStyle: {
+                width: 1,
+                color: '#999',
+              },
+            },
+            splitLine: {
+              distance: -16,
+              length: 8,
+              lineStyle: {
+                width: 1,
+                color: '#999',
+              },
+            },
+            axisLabel: {
+              distance: -20,
+              color: '#999',
+              fontSize: '0.08rem',
+            },
+            anchor: {
+              show: false,
+            },
+            title: {
+              show: false,
+            },
+            detail: {
+              valueAnimation: true,
+              width: '60%',
+              lineHeight: 40,
+              borderRadius: 8,
+              offsetCenter: [0, '-10%'],
+              fontSize: '0.15rem',
+              fontWeight: 'bolder',
+              formatter: '{value} %',
+              color: 'inherit',
+            },
+            data: [
+              {
+                value: 60,
+              },
+            ],
+          },
+        ],
+      };
 
-    //   option && myChart.setOption(option);
-    //   window.addEventListener("resize", () => {
-    //     myChart.resize();
-    //   });
-    // },
+      option && myChart.setOption(option);
+      window.addEventListener('resize', () => {
+        myChart.resize();
+      });
+    },
 
     openJfRecordList() {
       this.JfjcRecordInfo.isShowEmpty = false;
@@ -1083,15 +1245,16 @@ export default {
     },
 
     createGui() {
-      //   this.gui = new dat.GUI();
-      //   this.cameraFolder = this.gui.addFolder("Camera");
-      //   this.cameraFolder.add(this.camera.position, "x", -10000, 10000);
-      //   this.cameraFolder.add(this.camera.position, "y", -10000, 20000);
-      //   this.cameraFolder.add(this.camera.position, "z", -10000, 20000);
-      //   this.cameraFolder.add(this.camera.rotation, "x", 0, Math.PI * 2);
-      //   this.cameraFolder.add(this.camera.rotation, "y", 0, Math.PI * 2);
-      //   this.cameraFolder.add(this.camera.rotation, "z", 0, Math.PI * 2);
-      //   this.cameraFolder.open();
+      this.gui = new dat.GUI();
+
+      this.cameraFolder = this.gui.addFolder('Camera');
+      this.cameraFolder.add(this.camera.position, 'x', -10000, 10000);
+      this.cameraFolder.add(this.camera.position, 'y', -10000, 20000);
+      this.cameraFolder.add(this.camera.position, 'z', -10000, 20000);
+      this.cameraFolder.add(this.camera.rotation, 'x', 0, Math.PI * 2);
+      this.cameraFolder.add(this.camera.rotation, 'y', 0, Math.PI * 2);
+      this.cameraFolder.add(this.camera.rotation, 'z', 0, Math.PI * 2);
+      this.cameraFolder.open();
     },
 
     createScene() {
@@ -1147,7 +1310,7 @@ export default {
       }
       this.tweenCamera && this.tweenCamera.update();
       this.tweenEnter && this.tweenEnter.update();
-      if (this.controls.enabled) { 
+      if (this.controls.enabled) {
         this.controls.update();
       }
       this.composer.render();
@@ -1174,7 +1337,11 @@ export default {
     },
 
     loadGLTF(url, position, scale) {
-      const loader = new GLTFLoader();
+      this.manager = new THREE.LoadingManager();
+      const loader = new GLTFLoader(this.manager);
+      this.cameras = {};
+      this.deciceObject = {};
+      this.i = 0;
       loader.load(
         url,
         (gltf) => {
@@ -1208,9 +1375,13 @@ export default {
         },
         () => {},
         (error) => {
-          console.error("模型加载错误：", error);
+          console.error('模型加载错误：', error);
         }
       );
+      this.manager.onLoad = () => {
+        this.isLoaded = true;
+      };
+      this.isLoaded = false;
     },
 
     async onmodelclick(e) {
@@ -1221,65 +1392,66 @@ export default {
       const raycaster = new THREE.Raycaster();
       raycaster.setFromCamera(mouse, this.camera);
       const intersects = raycaster.intersectObjects(this.scene.children);
-      console.log("🚀 ~ onmodelclick ~ intersects:", intersects);
+      console.log('🚀 ~ onmodelclick ~ intersects:', intersects);
       // this.outlinePass.selectedObjects = [];
       if (intersects.length > 0) {
         const name = intersects[0].object.name;
-        const nameStart = intersects[0].object.name.split("-")[0];
-        if (nameStart === "icon" && intersects[0].object.clicked && name !== "icon-mj96") {
+        const nameStart = intersects[0].object.name.split('-')[0];
+        if (nameStart === 'icon' && intersects[0].object.clicked && name !== 'icon-mj96') {
           const key = intersects[0].object.name;
-          const type = intersects[0].object.name.split("-")[1];
+          const type = intersects[0].object.name.split('-')[1];
+          console.log(this.cameras);
+          console.log(key);
           this.outlinePass.selectedObjects = [this.cameras[key]];
           this.showChangeDialog(this.cameras[key], type);
         }
-        const lightList = this.filterModel(intersects, "light");
+        const lightList = this.filterModel(intersects, 'light');
         if (lightList.length > 0) {
           this.destroyScene(this.buildingGroup);
           this.loadGLTF(`/source/${this.modelInfo.room}.gltf`, [0, 345, 0], [1, 1, 1]);
           this.showpage = true;
         }
-        const lightList1 = this.filterModel(intersects, "light1");
+        const lightList1 = this.filterModel(intersects, 'light1');
         if (lightList1.length > 0) {
           this.destroyScene(this.buildingGroup);
           this.loadGLTF(`/source/${this.modelInfo.room}.gltf`, [0, 345, 0], [1, 1, 1]);
           this.showpage = true;
         }
 
-        const door3List = this.filterModel(intersects, "icon-mj96");
+        const door3List = this.filterModel(intersects, 'icon-mj96');
         if (door3List.length > 0) {
-          //   this.openJfRecordList();
+          this.openJfRecordList();
         }
-        const cabinet = intersects[0].object.name.split("-");
-        if (cabinet[1] === "ti") {
+        const cabinet = intersects[0].object.name.split('-');
+        if (cabinet[1] === 'ti') {
           this.outlinePass.selectedObjects = [intersects[0].object];
           this.createAdvertisement(e, this.$refs.infoRef3);
         }
-        const deviceList = this.filterModel(intersects, "device");
+        const deviceList = this.filterModel(intersects, 'device');
 
         if (deviceList.length > 0) {
-          const id = deviceList[0].object.parent.parent.name.split("#")[1];
-          const type = deviceList[0].object.parent.parent.name.split("#")[0];
+          const id = deviceList[0].object.parent.parent.name.split('#')[1];
+          const type = deviceList[0].object.parent.parent.name.split('#')[0];
           // this.deviceDetail = await this.$api.serverDetial({ amsUuid: id });
           // this.deviceDetail = await this.deviceInfo(deviceList[0].object.parent.parent.name);
-          this.$emit("getInfoCpuId", { type: type, uuid: id });
+          this.$emit('getInfoCpuId', { type: type, uuid: id });
           // this.createAdvertisement(e, this.$refs.infoRef);
           this.outlinePass.selectedObjects = [deviceList[0].object];
           return;
         }
-        let doorList = this.filterModel(intersects, "door");
+        let doorList = this.filterModel(intersects, 'door');
         if (cabinet.length <= 0 && doorList.length <= 0) {
           return;
         }
 
-        let id = "";
+        let id = '';
         if (doorList.length > 0) {
-          id = doorList[0].object.name.split("-")[1];
+          id = doorList[0].object.name.split('-')[1];
         } else {
-          id = this.cabinetObject[cabinet[0]] && this.cabinetObject[cabinet[0]].name.split("-")[1];
+          id = this.cabinetObject[cabinet[0]] && this.cabinetObject[cabinet[0]].name.split('-')[1];
         }
-        // this.deviceList = await this.getJgData(this.popType.jfUuid, id);
-        // if ((doorList.length > 0 || cabinet[1] === "ti") && this.deviceList.length >= 0) {
-        if (doorList.length > 0 || cabinet[1] === "ti") {
+        this.deviceList = await this.getJgData(this.popType.jfUuid, id);
+        if ((doorList.length > 0 || cabinet[1] === 'ti') && this.deviceList.length >= 0) {
           let temp = null,
             box = null;
           if (doorList.length > 0) {
@@ -1300,12 +1472,12 @@ export default {
           if (doorList[0]) {
             worldNormal = doorList[0].face.normal.clone().transformDirection(temp.matrixWorld);
           } else {
-            doorList = intersects[0].object.name.split("-")[2];
-            if (doorList === "z") {
+            doorList = intersects[0].object.name.split('-')[2];
+            if (doorList === 'z') {
               worldNormal = new THREE.Vector3(0, 0, 1);
-            } else if (doorList === "Z") {
+            } else if (doorList === 'Z') {
               worldNormal = new THREE.Vector3(0, 0, -1);
-            } else if (doorList === "x") {
+            } else if (doorList === 'x') {
               worldNormal = new THREE.Vector3(1, 0, 0);
             } else {
               worldNormal = new THREE.Vector3(-1, 0, 0);
@@ -1318,10 +1490,10 @@ export default {
             this.deviceList.forEach((el) => {
               const match = el.gasCabinteAddress.match(/^\d+/);
               let offsetY = Number(match[0]);
-              const typeUuid = el.gasStockType + "#" + el.uuid;
+              const typeUuid = el.gasStockType + '#' + el.uuid;
               if (match) {
                 const deviceNum = this.computedU(match.input);
-                if (deviceNum === "1U") offsetY = offsetY - 0.55;
+                if (deviceNum === '1U') offsetY = offsetY - 0.55;
                 this.loadModel(`/source/device-${el.gasStockType + deviceNum}.gltf`, true, height, offsetX, offsetY, offsetZ, doorList, typeUuid);
               }
             });
@@ -1357,14 +1529,14 @@ export default {
           cityGroup.name = _uuid;
           this.deviceGroup.push(cityGroup);
           let worldNormal = null;
-          if (typeof model !== "string") {
+          if (typeof model !== 'string') {
             worldNormal = model[0].face.normal.clone().transformDirection(model[0].object.matrixWorld);
           } else {
-            if (model === "z") {
+            if (model === 'z') {
               worldNormal = new THREE.Vector3(0, 0, 1);
-            } else if (model === "Z") {
+            } else if (model === 'Z') {
               worldNormal = new THREE.Vector3(0, 0, -1);
-            } else if (model === "x") {
+            } else if (model === 'x') {
               worldNormal = new THREE.Vector3(1, 0, 0);
             } else {
               worldNormal = new THREE.Vector3(-1, 0, 0);
@@ -1379,12 +1551,12 @@ export default {
           this.scene.add(cityGroup);
           this.scene.add(gltf.scene);
 
-          //   if (isPlay) {
-          //   }
+          if (isPlay) {
+          }
         },
         (e) => {},
         (error) => {
-          console.error("模型加载错误：", error);
+          console.error('模型加载错误：', error);
         }
       );
     },
@@ -1493,53 +1665,41 @@ export default {
         })
         .onComplete(() => {
           this.destroyScene(model);
-          this.loadGLTF("/source/中心机房-空机柜.gltf", [0, 345, 0], [1, 1, 1]);
+          this.loadGLTF('/source/中心机房-空机柜.gltf', [0, 345, 0], [1, 1, 1]);
         })
         .start();
     },
 
     createAdvertisement(e, vNode) {
       if (vNode) {
-        const offsetX = e.offsetX;
+        let offsetX = e.offsetX;
         let offsetY = e.offsetY;
         const infoDomHeight = vNode.clientHeight;
         if (offsetY <= infoDomHeight / 1.5) {
           offsetY = offsetY + infoDomHeight / 1.5;
         }
         vNode.style = `transform: translate(${offsetX - 100}px, ${offsetY - 150}px);display:block;`;
-        window.addEventListener("mousemove", (e) => {
-          vNode.style = "display:none";
+        window.addEventListener('mousemove', (e) => {
+          vNode.style = 'display:none';
         });
       }
     },
     deal(child) {
-      if (child.name.startsWith("sxt")) {
-        this.loadImage("/source/imgs/camera.png", child, { x: 0, y: 2100, z: 360 }, "sxt");
+      const iconPosMap = {
+        拱墅中心机房: 'pos1',
+        文晖机房: 'pos2',
+        城运机房: 'pos3',
+        人防机房: 'pos4',
+        行政服务中心: 'pos5',
+      };
+
+      const firstMark = child.name.split('-')[0];
+      const iconPosInfo = this.childNameObjects[firstMark];
+      if (iconPosInfo) {
+        const pos = iconPosInfo[iconPosMap[this.modelInfo.room]];
+        this.loadImage(iconPosInfo.url, child, pos, firstMark);
       }
-      if (child.name.startsWith("mj")) {
-        this.loadImage("/source/imgs/accessControl.png", child, { x: 0, y: 2200, z: 0 }, "mj");
-      }
-      if (child.name.startsWith("lscgq")) {
-        this.loadImage("/source/imgs/leakageDevice.png", child, { x: 0, y: 700, z: 0 }, "lscgq");
-      }
-      if (child.name.startsWith("sdlt")) {
-        this.loadImage("/source/imgs/sdlt.png", child, { x: 0, y: 1800, z: 0 }, "sdlt");
-      }
-      if (child.name.startsWith("wsdcgq")) {
-        this.loadImage("/source/imgs/temperatureAndHumiditySensor.png", child, { x: -700, y: 2000, z: -260 }, "wsdcgq");
-      }
-      if (child.name.startsWith("UPS")) {
-        this.loadImage("/source/imgs/UPS.png", child, { x: -4400, y: 2100, z: 2100 }, "UPS");
-      }
-      if (child.name.startsWith("kt")) {
-        this.loadImage("/source/imgs/airConditioner.png", child, { x: -200, y: 2100, z: 0 }, "kt");
-      }
-      if (child.name.startsWith("db")) {
-        this.loadImage("/source/imgs/wattHourMeter.png", child, { x: 0, y: 2100, z: 100 }, "db");
-      }
-      if (child.name.startsWith("xfsb")) {
-        this.loadImage("/source/imgs/fireControl.png", child, { x: 3800, y: 1700, z: 2400 }, "xfsb");
-      }
+
       const regex = /door-([0-9A-Za-z]+)-glass1/;
       if (regex.test(child.name)) {
         const key = child.parent.parent.name.substring(0, 3);
@@ -1549,7 +1709,6 @@ export default {
     },
     loadImage(url, child, obj, mark) {
       const pos = child.parent.position;
-
       const textureLoader = new THREE.TextureLoader();
       textureLoader.load(url, (texture) => {
         // const imageLoader = new THREE.ImageLoader();
@@ -1570,7 +1729,8 @@ export default {
           plane.position.y = obj.y;
           plane.position.z += obj.z;
         }
-        plane.name = "icon-" + mark + this.i;
+
+        plane.name = 'icon-' + mark + '-' + this.i;
 
         plane.clicked = true;
         // plane.visible = false;
@@ -1583,41 +1743,32 @@ export default {
       });
     },
     showChangeDialog(model, type) {
+      const deviceObject = {
+        sxt: '视频监控',
+        UPS: 'UPS',
+        kt: '空调状态',
+        db: '电表状态',
+        sdlt: '市电列头柜',
+        xfsb: '消防设备',
+        wsdcgq: '温湿度传感器',
+        pdg: '配电柜',
+        sdlt: '市电列头柜',
+        // xdc: '电池状态',
+        dlg: '动力柜',
+      };
       this.cameraInfo.type = type;
-      if (type.startsWith("sxt")) {
+      if (deviceObject[type]) {
+        this.cameraInfo.isShow = true;
+        this.cameraInfo.title = deviceObject[type];
+      }
+      if (type === 'sxt') {
         this.createWebsocket(model);
-        this.cameraInfo.title = "视频监控";
-        this.cameraInfo.isShow = true;
-      }
-      if (type.startsWith("UPS")) {
-        this.cameraInfo.title = "UPS";
-        this.cameraInfo.isShow = true;
-      }
-      if (type.startsWith("kt")) {
-        this.cameraInfo.title = "空调状态";
-        this.cameraInfo.isShow = true;
-      }
-      if (type.startsWith("db")) {
-        this.cameraInfo.title = "电表状态";
-        this.cameraInfo.isShow = true;
-      }
-      if (type.startsWith("sdlt")) {
-        this.cameraInfo.title = "市电列头柜";
-        this.cameraInfo.isShow = true;
-      }
-      if (type.startsWith("xfsb")) {
-        this.cameraInfo.title = "消防设备";
-        this.cameraInfo.isShow = true;
-      }
-      if (type.startsWith("wsdcgq")) {
-        this.cameraInfo.title = "温湿度传感器";
-        this.cameraInfo.isShow = true;
       }
     },
     createWebsocket(model) {
-      const uuid = model.name.split("-")[1];
+      const uuid = model.name.split('-')[1];
       if (this.socket) {
-        this.socket.close(1000, "客户端主动断开");
+        this.socket.close(1000, '客户端主动断开');
       }
       this.socket = new WebSocket(`wss://gsdyw.gongshu.gov.cn/video/websocket/5?uuid=${uuid}`);
 
@@ -1626,7 +1777,7 @@ export default {
         this.startHeartbeat();
       };
       this.socket.onmessage = (event) => {
-        if (event.data == "pong") {
+        if (event.data == 'pong') {
           return;
         }
         this.cameraInfo.videoUrl = event.data;
@@ -1642,7 +1793,7 @@ export default {
     startHeartbeat() {
       this.heartbeatTimer = setTimeout(() => {
         // 发送心跳包，这里简单地发送一个特定格式的消息，可根据服务端要求调整
-        this.socket.send("ping");
+        this.socket.send('ping');
         // 心跳包发送后，继续下一次的心跳监测计时
         this.startHeartbeat();
       }, 30000);
@@ -1662,9 +1813,9 @@ export default {
       const intersects = raycaster.intersectObjects(this.scene.children, true);
       if (intersects.length > 0) {
         const intersect = intersects[0];
-        if (intersect.object.name.startsWith("icon-")) {
-          const name = intersect.object.name.split("-")[2];
-          const type = intersect.object.name.split("-")[1];
+        if (intersect.object.name.startsWith('icon-')) {
+          const name = intersect.object.name.split('-')[2];
+          const type = intersect.object.name.split('-')[1];
           this.showChangeDialog(name, type);
         }
       }
@@ -1679,9 +1830,9 @@ export default {
       const intersects = raycaster.intersectObjects(this.scene.children, true);
       if (intersects.length > 0) {
         const intersect = intersects[0];
-        if (intersect.object.name.startsWith("icon-")) {
-          const name = intersect.object.name.split("-")[2];
-          const type = intersect.object.name.split("-")[1];
+        if (intersect.object.name.startsWith('icon-')) {
+          const name = intersect.object.name.split('-')[2];
+          const type = intersect.object.name.split('-')[1];
           this.showChangeDialog(name, type);
         }
       }
@@ -1703,40 +1854,45 @@ export default {
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height);
       }
-      window.addEventListener("resize", this.onWindowResize, false);
+      window.addEventListener('resize', this.onWindowResize, false);
     },
 
     filterModel(intersects, name) {
-      if (name === "door") {
-        return intersects[0].object.name.split("-")[0] === name ? intersects : [];
+      if (name === 'door') {
+        return intersects[0].object.name.split('-')[0] === name ? intersects : [];
       }
-      if (name === "device") {
-        return intersects[0].object.name.split("-")[0] === name ? intersects : [];
+      if (name === 'device') {
+        return intersects[0].object.name.split('-')[0] === name ? intersects : [];
       }
-      if (name === "ti") {
-        return intersects[0].object.name.split("-")[0] === name ? intersects : [];
+      if (name === 'ti') {
+        return intersects[0].object.name.split('-')[0] === name ? intersects : [];
       }
-      if (name === "light") {
+      if (name === 'light') {
         return intersects[0].object.name === name ? intersects : [];
       }
-      if (name === "light1") {
+      if (name === 'light1') {
         return intersects[0].object.name === name ? intersects : [];
       }
-      if (name === "icon-mj96") {
+      if (name === 'icon-mj96') {
         return intersects[0].object.name === name ? intersects : [];
       }
     },
 
     computedU(str) {
-      const temp = str.split("-");
+      const temp = str.split('-');
       if (temp.length <= 1) {
-        return "1U";
+        return '1U';
       } else {
         const match = temp[1].match(/^\d+/);
-        const t = Number(match[0]) - Number(temp[0]) + 1 + "U";
-        return t === "3U" ? "2U" : t;
+        const t = Number(match[0]) - Number(temp[0]) + 1 + 'U';
+        return t === '3U' ? '2U' : t;
       }
     },
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.onWindowResize);
+    this.$refs.threeBox.removeEventListener('dblclick', this.onmodelclick);
+    this.selControls && this.selControls.removeEventListener('unlock', this.unlockSelControls);
   },
 };
 </script>
@@ -1744,12 +1900,17 @@ export default {
 <style lang="less" scoped>
 .container {
   position: relative;
-  width: 100%;
   .map-house-box {
     width: 100%;
     height: 700px;
     position: absolute;
+    top: -1.38rem;
+    right: 0;
+    margin-left: -9rem;
     padding: 1.35rem 0.25rem 2.2rem;
+    width: 18rem;
+    height: 11rem;
+    left: 50%;
     .mapHouseContainer {
       width: 100%;
       height: 100%;
@@ -2007,55 +2168,76 @@ export default {
 
       .menu {
         position: absolute;
-        top: -2.03rem;
-        font-size: 0.14rem;
-        color: #fff;
-        text-align: center;
-        background: rgba(60, 58, 61, 0.8);
-        p {
-          padding: 0.036rem 0rem;
-          width: 1.34rem;
-          cursor: pointer;
-        }
-        P:hover {
-          background-color: #ffb44b;
-          color: #000;
+        top: -0.06rem;
+        .menu-box {
+          position: relative;
+          .menu-content {
+            position: absolute;
+            bottom: 0;
+            font-size: 0.14rem;
+            color: #fff;
+            text-align: center;
+            background: rgba(60, 58, 61, 0.8);
+            p {
+              padding: 0.036rem 0rem;
+              width: 1.34rem;
+              cursor: pointer;
+            }
+            P:hover {
+              background-color: #ffb44b;
+              color: #000;
+            }
+          }
         }
       }
       .menu2 {
         position: absolute;
-        top: -0.9rem;
+        top: -0.06rem;
         left: 1.35rem;
-        font-size: 0.14rem;
-        color: #fff;
-        text-align: center;
-        background: rgba(60, 58, 61, 0.8);
-        p {
-          padding: 0.036rem 0rem;
-          width: 1.34rem;
-          cursor: pointer;
-        }
-        P:hover {
-          background-color: #ffb44b;
-          color: #000;
+        .menu-box {
+          position: relative;
+          .menu-content {
+            position: absolute;
+            bottom: 0;
+            font-size: 0.14rem;
+            color: #fff;
+            text-align: center;
+            background: rgba(60, 58, 61, 0.8);
+            p {
+              padding: 0.036rem 0rem;
+              width: 1.34rem;
+              cursor: pointer;
+            }
+            P:hover {
+              background-color: #ffb44b;
+              color: #000;
+            }
+          }
         }
       }
       .menu3 {
         position: absolute;
-        top: -0.62rem;
+        top: -0.06rem;
         left: 2.7rem;
-        font-size: 0.14rem;
-        color: #fff;
-        text-align: center;
-        background: rgba(60, 58, 61, 0.8);
-        p {
-          padding: 0.036rem 0rem;
-          width: 1.34rem;
-          cursor: pointer;
-        }
-        P:hover {
-          background-color: #ffb44b;
-          color: #000;
+        .menu-box {
+          position: relative;
+          .menu-content {
+            position: absolute;
+            bottom: 0;
+            font-size: 0.14rem;
+            color: #fff;
+            text-align: center;
+            background: rgba(60, 58, 61, 0.8);
+            p {
+              padding: 0.036rem 0rem;
+              width: 1.34rem;
+              cursor: pointer;
+            }
+            P:hover {
+              background-color: #ffb44b;
+              color: #000;
+            }
+          }
         }
       }
     }
@@ -2120,10 +2302,5 @@ export default {
   100% {
     transform: rotate(360deg);
   }
-}
-</style>
-<style>
-#_search {
-  display: none;
 }
 </style>
